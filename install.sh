@@ -1,7 +1,7 @@
 #!/bin/sh
 # Configurateur Albert — lancement depuis le terminal (macOS / Linux).
 #
-#   curl -LsSf https://raw.githubusercontent.com/mrouxprofdemaths/configurateur-albert/v0.2.1/install.sh | sh
+#   curl -LsSf https://forge.apps.education.fr/rouxpierre-edouard/configurateur-albert/-/raw/v0.2.2/install.sh | sh
 #
 # Mode texte (sans fenêtre) :
 #   curl -LsSf …/install.sh | sh -s -- --texte
@@ -12,10 +12,11 @@
 #   2. lance le Configurateur Albert (version figée ci-dessous) avec un Python fourni par uv.
 set -eu
 
-REF="${CONFIGURATEUR_REF:-v0.2.1}"
-REPO="mrouxprofdemaths/configurateur-albert"
-# Archive GitHub de la version : fonctionne pour une étiquette (v0.2.1) comme pour une branche (main).
-ARCHIVE="https://github.com/$REPO/archive/$REF.tar.gz"
+REF="${CONFIGURATEUR_REF:-v0.2.2}"
+DEPOT="https://forge.apps.education.fr/rouxpierre-edouard/configurateur-albert"
+# Archive de la version sur la Forge des communs numériques éducatifs : fonctionne pour
+# une étiquette (v0.2.2) comme pour une branche (main).
+ARCHIVE="$DEPOT/-/archive/$REF/$REF.tar.gz"
 # CONFIGURATEUR_SOURCE permet de tester une copie locale (utilisé par la CI).
 SOURCE="${CONFIGURATEUR_SOURCE:-configurateur-albert @ $ARCHIVE}"
 UV_DIR="$HOME/.local/share/configurateur-albert/uv"
@@ -33,12 +34,12 @@ fi
 
 # La version demandée existe-t-elle ? (sinon uv afficherait une erreur 404 incompréhensible)
 if [ -z "${CONFIGURATEUR_SOURCE:-}" ] && ! curl -fsSIL -o /dev/null "$ARCHIVE" 2>/dev/null; then
-    say "Erreur : la version $REF du Configurateur Albert est introuvable sur GitHub"
-    say "(étiquette pas encore publiée, ou connexion à github.com bloquée)."
+    say "Erreur : la version $REF du Configurateur Albert est introuvable sur la Forge"
+    say "(étiquette pas encore publiée, ou connexion à forge.apps.education.fr bloquée)."
     say ""
     say "Prévenez la personne qui vous a transmis cette commande. Pour essayer la version"
     say "en cours de développement :"
-    say "  curl -LsSf https://raw.githubusercontent.com/$REPO/main/install.sh | CONFIGURATEUR_REF=main sh"
+    say "  curl -LsSf $DEPOT/-/raw/main/install.sh | CONFIGURATEUR_REF=main sh"
     exit 1
 fi
 
