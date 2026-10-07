@@ -26,6 +26,23 @@ jobs:
       - run: python -m ruff check .
       - run: python -m pytest -q
 
+  version:
+    # Même numéro de version partout ; sur main, alerte si l'étiquette n'est pas publiée.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Cohérence des versions
+        run: python packaging/verifier_version.py
+      - name: Étiquette = version des fichiers
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: python packaging/verifier_version.py --etiquette "${{ github.ref_name }}"
+      - name: Étiquette publiée ?
+        if: github.ref == 'refs/heads/main'
+        run: python packaging/verifier_version.py --signaler-absente
+
   amorcage:
     # Les commandes « curl … | sh » et « irm … | iex » : uv, Python géré, Tkinter.
     needs: tests
@@ -119,7 +136,7 @@ jobs:
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: build
+    needs: [build, version]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4

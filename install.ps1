@@ -19,13 +19,30 @@
     $Ref = if ($env:CONFIGURATEUR_REF) { $env:CONFIGURATEUR_REF } else { "v0.1.0" }
     $Repo = "mrouxprofdemaths/configurateur-albert"
     # CONFIGURATEUR_SOURCE permet de tester une copie locale (utilise par la CI).
+    # Archive GitHub de la version : etiquette (v0.1.0) ou branche (main).
+    $Archive = "https://github.com/$Repo/archive/$Ref.tar.gz"
     $Source = if ($env:CONFIGURATEUR_SOURCE) { $env:CONFIGURATEUR_SOURCE } `
-              else { "configurateur-albert @ https://github.com/$Repo/archive/refs/tags/$Ref.tar.gz" }
+              else { "configurateur-albert @ $Archive" }
     $UvDir = Join-Path $env:LOCALAPPDATA "configurateur-albert\uv"
 
     Write-Host ""
     Write-Host "=== Configurateur Albert ($Ref) ==="
     Write-Host ""
+
+    # La version demandee existe-t-elle ? (sinon uv afficherait une erreur 404 incomprehensible)
+    if (-not $env:CONFIGURATEUR_SOURCE) {
+        try {
+            Invoke-WebRequest -Uri $Archive -Method Head -UseBasicParsing | Out-Null
+        } catch {
+            Write-Host "Erreur : la version $Ref du Configurateur Albert est introuvable sur GitHub"
+            Write-Host "(etiquette pas encore publiee, ou connexion a github.com bloquee)."
+            Write-Host ""
+            Write-Host "Prevenez la personne qui vous a transmis cette commande. Pour essayer la version"
+            Write-Host "en cours de developpement :"
+            Write-Host "  `$env:CONFIGURATEUR_REF = `"main`"; irm https://raw.githubusercontent.com/$Repo/main/install.ps1 | iex"
+            return
+        }
+    }
 
     $Uv = Join-Path $UvDir "uv.exe"
     if (-not (Test-Path $Uv)) {
