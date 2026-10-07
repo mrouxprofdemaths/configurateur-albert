@@ -70,11 +70,39 @@
       "default": true
     },
     {
+      "id": "creer-un-skill",
+      "name": "Créer ses propres skills",
+      "description": "L'assistant vous guide pour transformer une méthode que vous répétez (fiche de séance, modèle de document…) en skill réutilisable.",
+      "source": {"type": "bundled"},
+      "default": true
+    },
+    {
       "id": "usage-ia-agents-etat",
       "name": "Cadre d'usage de l'IA (DINUM)",
       "description": "Les 5 principes du guide d'usage de l'IA générative pour les agents publics.",
       "source": {"type": "github", "repo": "etalab-ia/skills", "ref": "main", "path": "skills/usage-ia-agents-etat"},
       "default": true
+    },
+    {
+      "id": "verification-before-completion",
+      "name": "Vérifier avant de conclure",
+      "description": "L'assistant doit prouver qu'une tâche est vraiment terminée (fichier créé, résultat contrôlé) avant de l'annoncer. Léger. (Superpowers, licence MIT)",
+      "source": {"type": "github", "repo": "obra/superpowers", "ref": "8ca22dba9a94f28898bbce59f2537ff4d87c747d", "path": "skills/verification-before-completion"},
+      "default": true
+    },
+    {
+      "id": "brainstorming",
+      "name": "Réfléchir avant de produire",
+      "description": "Avant tout travail créatif, l'assistant pose des questions pour cadrer le besoin. Plus d'échanges, donc plus de quota consommé. (Superpowers, licence MIT)",
+      "source": {"type": "github", "repo": "obra/superpowers", "ref": "8ca22dba9a94f28898bbce59f2537ff4d87c747d", "path": "skills/brainstorming"},
+      "default": false
+    },
+    {
+      "id": "superpowers",
+      "name": "Pack Superpowers complet (programmation)",
+      "description": "15 skills de méthode pour programmer : planification, sous-agents, tests, revue de code, git. Pour les collègues qui codent, avec OpenCode. Gourmand en quota. (licence MIT)",
+      "source": {"type": "github-pack", "repo": "obra/superpowers", "ref": "8ca22dba9a94f28898bbce59f2537ff4d87c747d", "path": "skills"},
+      "default": false
     },
     {
       "id": "datagouv-apis",
@@ -136,6 +164,16 @@
       "type": "remote",
       "url": "https://mcp.context7.com/mcp",
       "default": false
+    },
+    {
+      "id": "markitdown",
+      "name": "MarkItDown (lecture de documents)",
+      "description": "Convertit PDF, Word, PowerPoint, Excel ou pages web en texte lisible par l'assistant. Fonctionne sur votre ordinateur, sans compte.",
+      "type": "local",
+      "command": ["uvx", "markitdown-mcp@0.0.1a7"],
+      "prepare": ["--help"],
+      "requires": "uv",
+      "default": true
     }
   ]
 }

@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Protocol
 
-from . import albert, configs, keystore, node, paths, skills, state, system
+from . import albert, configs, keystore, node, paths, skills, state, system, uvtool
 from .albert import Model
 from .jsonfiles import ConfigError
 from .paths import IS_WINDOWS
@@ -253,7 +253,8 @@ class _Run:
     def config(self) -> None:
         self.set("config", RUNNING)
         mcp_items = catalog_items("mcp", self.plan.mcp)
-        errors = []
+        errors, warnings = [], []
+        mcp_items = self._prepare_python_mcp(mcp_items, warnings)
         if self.plan.opencode:
             if self._opencode_major() not in (None, 1):
                 errors.append("OpenCode v2 détecté : configuration non écrite (format différent)")
@@ -277,9 +278,35 @@ class _Run:
                     state.update(pi_shell_path=True)
             except (OSError, ConfigError) as e:
                 errors.append(str(e))
-        state.update(mcp=self.plan.mcp)
-        self.set("config", ERROR if errors else OK, " ; ".join(errors) or
+        state.update(mcp=[i["id"] for i in mcp_items])
+        status = ERROR if errors else WARN if warnings else OK
+        self.set("config", status, " ; ".join(errors + warnings) or
                  f"Modèle par défaut : {self.plan.default_model}")
+
+    def _prepare_python_mcp(self, items: list[dict], errors: list[str]) -> list[dict]:
+        """Connecteurs lancés par uvx : installe uv si besoin, puis précharge le paquet
+        (sinon le premier appel de l'assistant dépasserait son délai d'attente)."""
+        needing = [i for i in items if i.get("requires") == "uv"]
+        if not needing:
+            return items
+        try:
+            uvx = uvtool.ensure(self.log)
+        except Exception as e:  # noqa: BLE001
+            self.log(f"Installation de uv impossible : {e}")
+            uvx = None
+        kept = [i for i in items if i.get("requires") != "uv"]
+        for item in needing:
+            if not uvx:
+                errors.append(f"{item['name']} non installé (outil uv indisponible)")
+                continue
+            self.log(f"Préparation du connecteur {item['name']} (téléchargement, une seule fois)…")
+            r = system.run([uvx, *item["command"][1:], *item.get("prepare", [])], self.log,
+                           env=system.child_env(), timeout=900)
+            if r.ok:
+                kept.append(item)
+            else:
+                errors.append(f"{item['name']} : préparation échouée (voir le journal)")
+        return kept
 
     # 7. Skills
     def skills(self) -> None:
@@ -288,16 +315,28 @@ class _Run:
             self.set("skills", SKIP, "Aucun skill choisi")
             return
         self.set("skills", RUNNING)
-        done, failed = [], []
-        for item in items:
+        done, failed, seen = [], [], set()
+        for entry in items:
             try:
-                status = skills.install(item, self.log)
-                self.log(f"  {item['name']} : {status}")
-                if status != "ignoré":
-                    done.append(item["id"])
+                expanded = skills.expand(entry)
             except Exception as e:  # noqa: BLE001
-                failed.append(item["name"])
-                self.log(f"  {item['name']} : échec ({e})")
+                failed.append(entry["name"])
+                self.log(f"  {entry['name']} : échec ({e})")
+                continue
+            if len(expanded) > 1:
+                self.log(f"  {entry['name']} : {len(expanded)} skills")
+            for item in expanded:
+                if item["id"] in seen:  # un skill choisi seul et aussi présent dans un pack
+                    continue
+                seen.add(item["id"])
+                try:
+                    status = skills.install(item, self.log)
+                    self.log(f"  {item['name']} : {status}")
+                    if status != "ignoré":
+                        done.append(item["id"])
+                except Exception as e:  # noqa: BLE001
+                    failed.append(item["name"])
+                    self.log(f"  {item['name']} : échec ({e})")
         state.update(skills=done)
         self.set("skills", WARN if failed else OK,
                  (f"Échec : {', '.join(failed)}" if failed else f"{len(done)} skill(s) dans {paths.skills_dir()}"))

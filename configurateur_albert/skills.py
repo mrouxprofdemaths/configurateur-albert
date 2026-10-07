@@ -52,6 +52,37 @@ def extract_subdir(tar_bytes: bytes, subdir: str, dest: Path) -> int:
     return count
 
 
+def list_skill_dirs(tar_bytes: bytes, parent: str) -> list[str]:
+    """Noms des sous-dossiers de <parent>/ qui contiennent un SKILL.md."""
+    parent = parent.strip("/")
+    names: set[str] = set()
+    with tarfile.open(fileobj=io.BytesIO(tar_bytes), mode="r:gz") as tf:
+        for m in tf.getmembers():
+            parts = m.name.split("/")
+            # <racine>/<parent…>/<nom>/SKILL.md
+            rel = "/".join(parts[1:])
+            if m.isfile() and rel.startswith(parent + "/") and rel.endswith("/SKILL.md"):
+                inner = rel[len(parent) + 1:].split("/")
+                if len(inner) == 2 and not inner[0].startswith("."):
+                    names.add(inner[0])
+    return sorted(names)
+
+
+def expand(item: dict) -> list[dict]:
+    """Un « pack » (dossier de skills d'un dépôt) devient une liste de skills individuels.
+    On installe le pack entier : ses skills se citent entre eux."""
+    src = item["source"]
+    if src["type"] != "github-pack":
+        return [item]
+    ref = src.get("ref", "main")
+    names = list_skill_dirs(_github_tarball(src["repo"], ref), src["path"])
+    if not names:
+        raise RuntimeError(f"aucun skill trouvé dans {src['repo']}/{src['path']}")
+    return [{"id": n, "name": n,
+             "source": {"type": "github", "repo": src["repo"], "ref": ref, "path": f"{src['path'].strip('/')}/{n}"}}
+            for n in names]
+
+
 def is_ours(skill_dir: Path) -> bool:
     return (skill_dir / SKILL_MARKER).exists()
 

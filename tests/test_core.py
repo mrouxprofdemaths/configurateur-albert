@@ -239,3 +239,75 @@ def test_pick_node_release():
     assert node.pick_release(index, "linux-x64") == "v22.20.0"
     assert node.pick_release(index, "osx-arm64-tar") == "v24.9.0"
     assert node.pick_release(index[3:], "linux-x64") is None
+
+
+# --- Packs de skills, uv, catalogue ------------------------------------------------------
+
+def _fake_pack() -> bytes:
+    buf = io.BytesIO()
+    with tarfile.open(fileobj=buf, mode="w:gz") as tf:
+        def add(name, content=b"x"):
+            info = tarfile.TarInfo(name)
+            info.size = len(content)
+            tf.addfile(info, io.BytesIO(content))
+        for n in ("alpha", "beta"):
+            add(f"depot-abc123/skills/{n}/SKILL.md", f"---\nname: {n}\ndescription: d\n---\n".encode())
+        add("depot-abc123/skills/beta/scripts/outil.sh")
+        add("depot-abc123/skills/.cache/SKILL.md")          # dossier caché : ignoré
+        add("depot-abc123/skills/sans-skill/README.md")     # pas de SKILL.md : ignoré
+        add("depot-abc123/README.md")
+    return buf.getvalue()
+
+
+def test_pack_expands_and_installs(home, monkeypatch):
+    monkeypatch.setattr(skills, "_github_tarball", lambda repo, ref: _fake_pack())
+    pack = {"id": "pack", "name": "Pack", "source": {"type": "github-pack", "repo": "o/d", "ref": "abc", "path": "skills"}}
+    items = skills.expand(pack)
+    assert [i["id"] for i in items] == ["alpha", "beta"]
+    for item in items:
+        assert skills.install(item, print) == "installé"
+    assert (paths.skills_dir() / "beta" / "scripts" / "outil.sh").exists()
+    single = {"id": "x", "source": {"type": "github", "repo": "o/d", "path": "skills/alpha"}}
+    assert skills.expand(single) == [single]
+
+
+def test_uvx_resolved_to_private_path(home):
+    from configurateur_albert import uvtool
+
+    assert uvtool.resolve(["uvx", "paquet"]) in (["uvx", "paquet"], [uvtool.find_uvx(), "paquet"])
+    exe = uvtool.uv_dir() / ("uvx.exe" if sys.platform == "win32" else "uvx")
+    exe.parent.mkdir(parents=True)
+    exe.write_text("")
+    cmd = uvtool.resolve(["uvx", "markitdown-mcp@0.0.1a7"])
+    assert cmd[0].replace("\\", "/") == str(exe).replace("\\", "/") and cmd[1] == "markitdown-mcp@0.0.1a7"
+
+
+def test_markitdown_in_configs(home):
+    from configurateur_albert import uvtool
+
+    exe = uvtool.uv_dir() / ("uvx.exe" if sys.platform == "win32" else "uvx")
+    exe.parent.mkdir(parents=True)
+    exe.write_text("")
+    items = installer.catalog_items("mcp", ["markitdown"])
+    configs.write_opencode(models(), "gemma-4-31b-it", items)
+    configs.write_pi(models(), "gemma-4-31b-it", items)
+    oc = json.loads(paths.opencode_config_file().read_text())["mcp"]["markitdown"]
+    assert oc["type"] == "local" and oc["command"][0].endswith(("uvx", "uvx.exe"))
+    pi = json.loads(paths.pi_mcp_file().read_text())["mcpServers"]["markitdown"]
+    assert pi["command"].endswith(("uvx", "uvx.exe")) and pi["args"] == ["markitdown-mcp@0.0.1a7"]
+
+
+def test_catalog_is_consistent():
+    cat = paths.catalog()
+    ids = [s["id"] for s in cat["skills"]]
+    assert len(ids) == len(set(ids))
+    for s in cat["skills"]:
+        assert s["source"]["type"] in ("bundled", "github", "github-pack")
+        if s["source"]["type"] == "bundled":
+            text = (paths.BUNDLED_SKILLS_DIR / s["id"] / "SKILL.md").read_text(encoding="utf-8")
+            assert f"\nname: {s['id']}\n" in text
+            desc = text.split("description:", 1)[1].split("\n---", 1)[0]
+            assert 0 < len(desc.strip()) <= 1024
+    for m in cat["mcp"]:
+        assert m["type"] in ("remote", "local")
+        assert ("url" in m) if m["type"] == "remote" else ("command" in m)

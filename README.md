@@ -187,17 +187,31 @@ connexion…). Si une clé est déjà enregistrée sur l'ordinateur, l'applicati
 
 ![Choix des skills](docs/captures/06-skills.png)
 
-Un skill est un mode d'emploi que l'assistant consulte quand la tâche s'y prête. Les trois
-premiers sont cochés par défaut :
+Un skill est un mode d'emploi que l'assistant consulte quand la tâche s'y prête. Seule sa
+courte description est lue en permanence ; le mode d'emploi complet n'est chargé qu'au besoin.
+
+**Cochés par défaut :**
 
 | Skill | Ce qu'il apporte | Exemple de demande |
 |---|---|---|
 | Anonymiser un texte | retire noms, adresses, numéros… avant tout traitement | « Anonymise compte-rendu.md » |
 | Transcrire un enregistrement audio | mp3/wav → texte ou sous-titres (Whisper d'Albert) | « Transcris cours.mp3 » |
+| Créer ses propres skills | l'assistant vous interroge puis rédige un skill réutilisable pour votre méthode | « Crée un skill pour mes fiches de séance » |
 | Cadre d'usage de l'IA (DINUM) | les 5 principes du guide d'usage de l'IA pour les agents publics | « Puis-je utiliser l'IA pour ce travail ? » |
+| Vérifier avant de conclure | l'assistant prouve qu'une tâche est faite avant de l'annoncer | (automatique) |
+
+**En option :**
+
+| Skill | Ce qu'il apporte | À savoir |
+|---|---|---|
+| Réfléchir avant de produire | cadre le besoin par des questions avant tout travail créatif | plus d'échanges, donc plus de quota |
+| Pack Superpowers complet | 15 skills de méthode pour **programmer** : plans, sous-agents, tests, revue de code, git | pour les collègues qui codent, avec OpenCode (Pi n'a pas de sous-agents) ; gourmand en quota |
 | Données publiques data.gouv.fr | chercher et exploiter des jeux de données publics | « Trouve les effectifs des lycées de la Sarthe » |
 | Accessibilité (RGAA) | vérifier l'accessibilité d'une page web | « Vérifie l'accessibilité de index.html » |
-| Word, PowerPoint, Excel, PDF | créer et modifier ces fichiers (nécessite Python) | « Fais un diaporama à partir de notes.md » |
+| Word, PowerPoint, Excel, PDF | **créer** et modifier ces fichiers | nécessite Python sur le poste ; pour simplement *lire* ces fichiers, le connecteur MarkItDown suffit |
+
+Les skills « Vérifier avant de conclure », « Réfléchir avant de produire » et le pack viennent du
+projet [Superpowers](https://github.com/obra/superpowers) (licence MIT), dans une version figée.
 
 Faites défiler la liste (molette de la souris) pour tout voir.
 
@@ -209,8 +223,15 @@ Un connecteur donne à l'assistant un accès direct à un service extérieur.
 **Choisissez-en peu** : chaque connecteur occupe une partie de la mémoire de travail du
 modèle et consomme du quota Albert.
 
-- **data.gouv.fr** (coché par défaut) : interroger les données publiques, en lecture seule, sans compte.
-- **Context7** : documentation à jour des bibliothèques de programmation (utile surtout pour coder).
+| Connecteur | Ce qu'il apporte | Par défaut |
+|---|---|---|
+| **data.gouv.fr** | interroger les données publiques, en lecture seule, sans compte | coché |
+| **MarkItDown** | lire vos PDF, Word, PowerPoint, Excel : il les convertit en texte pour l'assistant. Fonctionne sur votre ordinateur (rien n'est envoyé ailleurs qu'à Albert) | coché |
+| **Context7** | documentation à jour des bibliothèques de programmation (utile surtout pour coder) | décoché |
+
+MarkItDown a besoin de l'outil *uv* : l'installateur l'utilise s'il est déjà présent (méthode du
+terminal) ou l'installe dans votre dossier personnel, puis prépare le connecteur (une minute
+environ, une seule fois). Exemple de demande : « Lis compte-rendu.pdf et résume-le en 10 lignes. »
 
 ### Écran 7 — Récapitulatif
 
@@ -402,7 +423,7 @@ logiciels). Pas de télémétrie, pas de compte à créer en dehors du Playgroun
 | OpenCode | `~/.config/opencode/opencode.json` (section `albert` seulement) |
 | Pi | `~/.pi/agent/models.json`, `settings.json`, `mcp.json` |
 | Skills | `~/.agents/skills/` (lu par OpenCode et par Pi) |
-| Outil uv et son Python (méthode du terminal) | `~/.local/share/configurateur-albert/uv` et `~/.cache/uv` (Windows : `%LOCALAPPDATA%\configurateur-albert\uv` et `%LOCALAPPDATA%\uv`) ; non retirés par la désinstallation, supprimables à la main |
+| Outil uv et son Python (méthode du terminal, ou connecteur MarkItDown) | `~/.local/share/configurateur-albert/uv` et `~/.cache/uv` (Windows : `%LOCALAPPDATA%\configurateur-albert\uv` et `%LOCALAPPDATA%\uv`) ; non retirés par la désinstallation, supprimables à la main |
 
 Vos autres réglages (autres fournisseurs d'IA, autres connecteurs, skills personnels) ne
 sont **jamais** modifiés : un skill du même nom que l'un des nôtres, mais créé par vous,
