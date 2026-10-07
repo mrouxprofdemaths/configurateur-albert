@@ -5,7 +5,7 @@ from __future__ import annotations
 import getpass
 import webbrowser
 
-from . import APP_NAME, __version__, albert, installer, paths, texts
+from . import APP_NAME, __version__, albert, installer, modelguide, paths, texts
 from .installer import Plan
 
 
@@ -71,10 +71,12 @@ def main_install() -> int:
     print("Diagnostic du poste…")
     d = installer.diagnose()
     print(f"  Système : {d.os}\n  Node.js : {d.node or 'absent'}\n"
-          f"  OpenCode : {d.opencode or 'absent'}\n  Pi : {d.pi or 'absent'}")
+          f"  OpenCode : {d.opencode or 'absent'}\n  Pi : {d.pi or 'absent'}\n  Hermes : {d.hermes or 'absent'}")
     key, models = choose_key(d)
 
     default = albert.default_model_id(models)
+    if ask_yes("\nAfficher le guide « Quel modèle choisir ? » ?", True):
+        print("\n" + modelguide.text_guide(models))
     print("\nModèles disponibles :")
     for i, m in enumerate(models, 1):
         print(f"  {i}. {m.id} — {m.label}" + ("  (par défaut)" if m.id == default else ""))
@@ -84,7 +86,8 @@ def main_install() -> int:
 
     want_oc = ask_yes("\nInstaller et configurer OpenCode ?")
     want_pi = ask_yes("Installer et configurer Pi ?")
-    if not (want_oc or want_pi):
+    want_hermes = ask_yes("Installer et configurer Hermes (installation longue : 5 à 15 min) ?", False)
+    if not (want_oc or want_pi or want_hermes):
         print("Rien à faire.")
         return 0
     cat = paths.catalog()
@@ -94,7 +97,7 @@ def main_install() -> int:
     vscode = want_oc and d.vscode and ask_yes("Installer l'extension OpenCode pour VS Code ?", False)
 
     plan = Plan(key=key, models=models, default_model=default or models[0].id,
-                opencode=want_oc, pi=want_pi, skills=chosen_skills, mcp=chosen_mcp, vscode=vscode)
+                opencode=want_oc, pi=want_pi, hermes=want_hermes, skills=chosen_skills, mcp=chosen_mcp, vscode=vscode)
     print()
     results = installer.run_plan(plan, ConsoleReporter())
     print("\n" + texts.USAGE)
@@ -110,7 +113,7 @@ def main_uninstall() -> int:
     if not ask_yes("Retirer les réglages Albert, les skills et le chargement de la clé ?", False):
         return 0
     remove_key = ask_yes("Supprimer aussi la clé Albert de ce poste ?", True)
-    remove_tools = ask_yes("Désinstaller aussi OpenCode et Pi ?", False)
+    remove_tools = ask_yes("Désinstaller aussi OpenCode, Pi et Hermes ?", False)
     installer.uninstall(ConsoleReporter(), remove_key=remove_key, remove_tools=remove_tools)
     return 0
 

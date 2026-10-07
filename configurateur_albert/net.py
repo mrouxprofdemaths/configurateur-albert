@@ -15,14 +15,17 @@ USER_AGENT = f"configurateur-albert/{__version__}"
 
 
 def _ssl_context() -> ssl.SSLContext:
-    # Le Python de python.org (macOS) et les exécutables PyInstaller n'ont pas
-    # toujours accès aux certificats du système : certifi comble ce manque.
+    # Certificats du système (dont ceux qu'un réseau d'établissement ajoute pour inspecter
+    # le trafic HTTPS) + ceux de certifi (le Python de python.org sous macOS et les
+    # exécutables PyInstaller n'ont pas toujours accès à ceux du système).
+    ctx = ssl.create_default_context()
     try:
         import certifi
 
-        return ssl.create_default_context(cafile=certifi.where())
-    except ImportError:
-        return ssl.create_default_context()
+        ctx.load_verify_locations(cafile=certifi.where())
+    except (ImportError, OSError):
+        pass
+    return ctx
 
 
 class HttpError(Exception):

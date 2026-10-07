@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from . import jsonfiles, paths
+from . import jsonfiles, paths, uvtool
 from .albert import Model
 from .paths import IS_WINDOWS
 
@@ -24,7 +24,7 @@ def mcp_entry(item: dict) -> dict:
     """Entrée du catalogue → description neutre {type, url | command/args}."""
     if item["type"] == "remote":
         return {"type": "remote", "url": item["url"]}
-    cmd = list(item["command"])
+    cmd = uvtool.resolve(list(item["command"]))
     if IS_WINDOWS and cmd and cmd[0] in ("npx", "npm", "node"):
         # Sous Windows, npx est un script .cmd : il faut passer par cmd /c.
         cmd = ["cmd", "/c", *cmd]

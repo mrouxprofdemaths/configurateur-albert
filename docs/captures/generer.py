@@ -50,8 +50,9 @@ STEPS_DONE = [
     ("windows", "ignoré", "Non concerné"),
     ("opencode", "ok", "Version 1.18.35 installée"),
     ("pi", "ok", "Version 1.0.4 installée"),
+    ("hermes", "ignoré", "Non demandé"),
     ("config", "ok", "Modèle par défaut : gemma-4-31b-it"),
-    ("skills", "ok", "3 skill(s) dans ~/.agents/skills"),
+    ("skills", "ok", "5 skill(s) dans ~/.agents/skills"),
     ("vscode", "ok", "Extension OpenCode installée"),
     ("test", "ok", "API : OK · OpenCode : OK · Pi : OK"),
 ]
@@ -65,11 +66,14 @@ LOG = [
     "  added 3 packages in 14s",
     "$ npm install -g --ignore-scripts @earendil-works/pi-coding-agent@1",
     "  added 121 packages in 11s",
+    "Préparation du connecteur MarkItDown (lecture de documents) (téléchargement, une seule fois)…",
     "OpenCode configuré : ~/.config/opencode/opencode.json",
     "Pi configuré : ~/.pi/agent/models.json",
     "  Anonymiser un texte : installé",
     "  Transcrire un enregistrement audio : installé",
+    "  Créer ses propres skills : installé",
     "  Cadre d'usage de l'IA (DINUM) : installé",
+    "  Vérifier avant de conclure : installé",
     "Albert répond (gemma-4-31b-it) : 'OK'",
     "Test d'OpenCode avec gemma-4-31b-it (lecture d'un fichier)…",
     "  ALBATROS-427",
@@ -130,6 +134,10 @@ def main() -> None:
     shot(app, "04-cle-valide")
     app.next()
     shot(app, "05-assistants-modele")
+    app.open_model_guide()
+    settle(app, 20)
+    shot(app.guide_window, "05b-guide-modeles")
+    app.guide_window.destroy()
     app.next()
     shot(app, "06-skills")
     app.next()

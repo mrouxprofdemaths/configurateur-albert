@@ -5,121 +5,265 @@
     "keys_url": "https://albert.playground.etalab.gouv.fr/keys",
     "env_var": "ALBERT_API_KEY",
     "default_model": "gemma-4-31b-it",
-    "chat_types": ["text-generation", "image-text-to-text", "image-to-text"]
+    "chat_types": [
+      "text-generation",
+      "image-text-to-text",
+      "image-to-text"
+    ],
+    "models_doc_url": "https://guides.ia.numerique.gouv.fr/albert-api/modeles/available-models",
+    "models_checked_on": "2026-10-07"
   },
-
   "models": {
     "gemma-4-31b-it": {
       "name": "Gemma 4 31B",
-      "input": ["text", "image"],
+      "input": [
+        "text",
+        "image"
+      ],
       "context": 262144,
       "output": 32768,
-      "note": "généraliste, lit les images (recommandé)"
+      "note": "généraliste, lit les images (recommandé)",
+      "role": "Généraliste, lit aussi les images (captures, photos de documents, schémas).",
+      "choose_if": "Vous ne savez pas lequel prendre : c'est le bon choix pour presque tout (rédiger, résumer, reformuler, analyser un document ou une image).",
+      "example": "« Résume cours-chapitre3.md en 10 lignes, puis propose 5 questions de compréhension. »",
+      "limits": "Compte d'expérimentation : 50 requêtes/min, 1 000/jour. Mémoire de travail (contexte) : 262 000 jetons."
     },
     "gpt-oss-120b": {
       "name": "GPT-OSS 120B",
-      "input": ["text"],
+      "input": [
+        "text"
+      ],
       "context": 131072,
       "output": 32768,
-      "note": "raisonnement (quota réduit : 10 requêtes/min)"
+      "note": "raisonnement (quota réduit : 10 requêtes/min)",
+      "role": "Raisonnement poussé : tâches longues ou difficiles, en plusieurs étapes.",
+      "choose_if": "Le travail demande de réfléchir longtemps (problème de mathématiques, analyse critique, planification) et gemma s'y perd.",
+      "example": "« Vérifie pas à pas la correction de exercices-probabilites.md et signale chaque erreur. »",
+      "limits": "Le plus limité : 10 requêtes/min et 128 000 jetons/min en expérimentation. Un agent enchaîne les requêtes : vous atteindrez vite la limite (erreur 429). Lent. Ne lit pas les images."
     },
     "deepseek-v4-flash-0731": {
       "name": "DeepSeek V4 Flash",
-      "input": ["text"],
+      "input": [
+        "text"
+      ],
       "context": 131072,
       "output": 32768,
-      "note": "code uniquement (modèle extra-européen)"
+      "note": "code uniquement (modèle extra-européen)",
+      "role": "Spécialisé en programmation.",
+      "choose_if": "Vous écrivez ou corrigez du code (Python, sites web, scripts) — et seulement dans ce cas.",
+      "example": "« Ajoute une fonction qui calcule la moyenne pondérée dans notes.py, avec des tests. »",
+      "limits": "Modèle d'origine extra-européenne (DeepSeek), hébergé par Albert en France. Ne lit pas les images.",
+      "experimental_from": "2026-07-26",
+      "experimental_until": "2026-10-01"
     },
     "ministral-3-8b-instruct-2512": {
       "name": "Ministral 3 8B",
-      "input": ["text", "image"],
+      "input": [
+        "text",
+        "image"
+      ],
       "context": 262144,
       "output": 32768,
       "opencode": false,
-      "note": "petit et rapide (Pi seulement : refusé par OpenCode en mode « run »)"
+      "note": "petit et rapide (Pi seulement : refusé par OpenCode en mode « run »)",
+      "role": "Petit et rapide, lit aussi les images.",
+      "choose_if": "Tâches simples et répétitives (corriger l'orthographe, classer, reformuler une phrase) ou quand le quota des gros modèles est atteint.",
+      "example": "« Corrige l'orthographe de appreciation-trimestre.md sans changer le sens. »",
+      "limits": "Moins fiable sur les tâches complexes. Avec OpenCode, il échoue à demander les autorisations : l'installateur le réserve à Pi."
     },
     "lightonocr-2-1b": {
       "name": "LightOn OCR",
-      "input": ["text", "image"],
+      "input": [
+        "text",
+        "image"
+      ],
       "context": 16384,
       "output": 4096,
       "tools": false,
       "opencode": false,
-      "note": "OCR : recopie le texte d'une image (Pi seulement)"
+      "note": "OCR : recopie le texte d'une image (Pi seulement)",
+      "role": "Reconnaissance de texte (OCR) : recopie le texte d'une image, formules comprises (en LaTeX).",
+      "choose_if": "Vous avez un scan ou une photo de document à transformer en texte. Ce n'est pas un modèle de conversation.",
+      "example": "pi --model albert/lightonocr-2-1b @scan.png \"Recopie le texte.\"",
+      "limits": "Images seulement (pas de PDF : convertissez d'abord les pages en images). Pi seulement. Il recopie parfois les consignes de Pi avant le texte : gardez la fin."
+    },
+    "deepseek-v4-flash": {
+      "name": "DeepSeek V4 Flash",
+      "input": [
+        "text"
+      ],
+      "context": 131072,
+      "output": 32768,
+      "note": "code uniquement (modèle extra-européen)",
+      "role": "Spécialisé en programmation.",
+      "choose_if": "Vous écrivez ou corrigez du code (Python, sites web, scripts) — et seulement dans ce cas.",
+      "example": "« Ajoute une fonction qui calcule la moyenne pondérée dans notes.py, avec des tests. »",
+      "limits": "Modèle d'origine extra-européenne (DeepSeek), hébergé par Albert en France. Ne lit pas les images.",
+      "experimental_from": "2026-07-26",
+      "experimental_until": "2026-10-01"
     }
   },
-
   "excluded_models": {
-    "mistral-small-3-2-24b-instruct-2506": "appels d'outils mal formés, retrait prévu le 1/12/2026",
-    "qwen3-coder-30b-a3b-instruct": "retrait annoncé le 1/10/2026"
+    "mistral-small-3-2-24b-instruct-2506": {
+      "reason": "appels d'outils mal formés avec les assistants",
+      "retirement": "2026-12-01",
+      "replacement": "gemma-4-31b-it"
+    },
+    "qwen3-coder-30b-a3b-instruct": {
+      "reason": "ancien modèle de code",
+      "retirement": "2026-10-01",
+      "replacement": "deepseek-v4-flash"
+    }
   },
-
   "skills": [
     {
       "id": "anonymisation-textes",
       "name": "Anonymiser un texte",
       "description": "Retire noms, adresses et autres données personnelles d'un texte avant de le confier à l'IA.",
-      "source": {"type": "bundled"},
+      "source": {
+        "type": "bundled"
+      },
       "default": true
     },
     {
       "id": "transcription-audio",
       "name": "Transcrire un enregistrement audio",
       "description": "Transforme un fichier mp3/wav en texte avec le modèle Whisper d'Albert.",
-      "source": {"type": "bundled"},
+      "source": {
+        "type": "bundled"
+      },
+      "default": true
+    },
+    {
+      "id": "creer-un-skill",
+      "name": "Créer ses propres skills",
+      "description": "L'assistant vous guide pour transformer une méthode que vous répétez (fiche de séance, modèle de document…) en skill réutilisable.",
+      "source": {
+        "type": "bundled"
+      },
       "default": true
     },
     {
       "id": "usage-ia-agents-etat",
       "name": "Cadre d'usage de l'IA (DINUM)",
       "description": "Les 5 principes du guide d'usage de l'IA générative pour les agents publics.",
-      "source": {"type": "github", "repo": "etalab-ia/skills", "ref": "main", "path": "skills/usage-ia-agents-etat"},
+      "source": {
+        "type": "github",
+        "repo": "etalab-ia/skills",
+        "ref": "main",
+        "path": "skills/usage-ia-agents-etat"
+      },
       "default": true
+    },
+    {
+      "id": "verification-before-completion",
+      "name": "Vérifier avant de conclure",
+      "description": "L'assistant doit prouver qu'une tâche est vraiment terminée (fichier créé, résultat contrôlé) avant de l'annoncer. Léger. (Superpowers, licence MIT)",
+      "source": {
+        "type": "github",
+        "repo": "obra/superpowers",
+        "ref": "8ca22dba9a94f28898bbce59f2537ff4d87c747d",
+        "path": "skills/verification-before-completion"
+      },
+      "default": true
+    },
+    {
+      "id": "brainstorming",
+      "name": "Réfléchir avant de produire",
+      "description": "Avant tout travail créatif, l'assistant pose des questions pour cadrer le besoin. Plus d'échanges, donc plus de quota consommé. (Superpowers, licence MIT)",
+      "source": {
+        "type": "github",
+        "repo": "obra/superpowers",
+        "ref": "8ca22dba9a94f28898bbce59f2537ff4d87c747d",
+        "path": "skills/brainstorming"
+      },
+      "default": false
+    },
+    {
+      "id": "superpowers",
+      "name": "Pack Superpowers complet (programmation)",
+      "description": "15 skills de méthode pour programmer : planification, sous-agents, tests, revue de code, git. Pour les collègues qui codent, avec OpenCode. Gourmand en quota. (licence MIT)",
+      "source": {
+        "type": "github-pack",
+        "repo": "obra/superpowers",
+        "ref": "8ca22dba9a94f28898bbce59f2537ff4d87c747d",
+        "path": "skills"
+      },
+      "default": false
     },
     {
       "id": "datagouv-apis",
       "name": "Données publiques data.gouv.fr",
       "description": "Chercher et utiliser les jeux de données publics de data.gouv.fr.",
-      "source": {"type": "github", "repo": "etalab-ia/skills", "ref": "main", "path": "skills/datagouv-apis"},
+      "source": {
+        "type": "github",
+        "repo": "etalab-ia/skills",
+        "ref": "main",
+        "path": "skills/datagouv-apis"
+      },
       "default": false
     },
     {
       "id": "rgaa",
       "name": "Accessibilité numérique (RGAA)",
       "description": "Vérifier qu'une page web respecte le référentiel d'accessibilité RGAA.",
-      "source": {"type": "github", "repo": "etalab-ia/skills", "ref": "main", "path": "skills/rgaa"},
+      "source": {
+        "type": "github",
+        "repo": "etalab-ia/skills",
+        "ref": "main",
+        "path": "skills/rgaa"
+      },
       "default": false
     },
     {
       "id": "docx",
       "name": "Documents Word (.docx)",
       "description": "Créer et modifier des documents Word. Nécessite Python sur le poste. Licence Anthropic (usage personnel).",
-      "source": {"type": "github", "repo": "anthropics/skills", "ref": "main", "path": "skills/docx"},
+      "source": {
+        "type": "github",
+        "repo": "anthropics/skills",
+        "ref": "main",
+        "path": "skills/docx"
+      },
       "default": false
     },
     {
       "id": "pptx",
       "name": "Diaporamas PowerPoint (.pptx)",
       "description": "Créer et modifier des diaporamas. Nécessite Python sur le poste. Licence Anthropic (usage personnel).",
-      "source": {"type": "github", "repo": "anthropics/skills", "ref": "main", "path": "skills/pptx"},
+      "source": {
+        "type": "github",
+        "repo": "anthropics/skills",
+        "ref": "main",
+        "path": "skills/pptx"
+      },
       "default": false
     },
     {
       "id": "xlsx",
       "name": "Tableurs Excel (.xlsx)",
       "description": "Créer et modifier des tableurs. Nécessite Python sur le poste. Licence Anthropic (usage personnel).",
-      "source": {"type": "github", "repo": "anthropics/skills", "ref": "main", "path": "skills/xlsx"},
+      "source": {
+        "type": "github",
+        "repo": "anthropics/skills",
+        "ref": "main",
+        "path": "skills/xlsx"
+      },
       "default": false
     },
     {
       "id": "pdf",
       "name": "Fichiers PDF",
       "description": "Extraire, fusionner, remplir des PDF. Nécessite Python sur le poste. Licence Anthropic (usage personnel).",
-      "source": {"type": "github", "repo": "anthropics/skills", "ref": "main", "path": "skills/pdf"},
+      "source": {
+        "type": "github",
+        "repo": "anthropics/skills",
+        "ref": "main",
+        "path": "skills/pdf"
+      },
       "default": false
     }
   ],
-
   "mcp": [
     {
       "id": "data-gouv",
@@ -130,12 +274,35 @@
       "default": true
     },
     {
+      "id": "alliance",
+      "name": "Alliance (guides IA dans l'État)",
+      "description": "Recherche dans les guides officiels de l'IA dans l'État (guides.ia.numerique.gouv.fr) : usages, déploiement, bonnes pratiques. Sans compte.",
+      "type": "remote",
+      "url": "https://guides.ia.numerique.gouv.fr/~gitbook/mcp",
+      "default": true
+    },
+    {
       "id": "context7",
       "name": "Context7",
       "description": "Documentation à jour des bibliothèques de programmation. Sans compte (débit limité).",
       "type": "remote",
       "url": "https://mcp.context7.com/mcp",
       "default": false
+    },
+    {
+      "id": "markitdown",
+      "name": "MarkItDown (lecture de documents)",
+      "description": "Convertit PDF, Word, PowerPoint, Excel ou pages web en texte lisible par l'assistant. Fonctionne sur votre ordinateur, sans compte.",
+      "type": "local",
+      "command": [
+        "uvx",
+        "markitdown-mcp@0.0.1a7"
+      ],
+      "prepare": [
+        "--help"
+      ],
+      "requires": "uv",
+      "default": true
     }
   ]
 }

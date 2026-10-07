@@ -3,8 +3,8 @@
 **Installer en quelques minutes un assistant d'IA qui travaille sur vos fichiers, branché sur
 Albert API, l'IA souveraine de l'État, sans connaissance technique.**
 
-L'application installe et règle **OpenCode** et/ou **Pi**, deux assistants qui lisent, écrivent
-et transforment les fichiers d'un dossier de votre ordinateur. Elle ajoute aussi des **skills**
+L'application installe et règle **OpenCode**, **Pi** et/ou **Hermes**, des assistants qui lisent,
+écrivent et transforment les fichiers d'un dossier de votre ordinateur. Elle ajoute aussi des **skills**
 (savoir-faire, comme anonymiser un texte ou transcrire un enregistrement) et des **connecteurs**
 (accès aux données publiques de data.gouv.fr…).
 
@@ -22,7 +22,7 @@ Public visé : enseignant·es et agents publics, sans compétence technique (for
 3. [Ouvrir un terminal](#3-ouvrir-un-terminal)
 4. [Lancer l'installateur](#4-lancer-linstallateur)
 5. [Suivre l'assistant, écran par écran](#5-suivre-lassistant-écran-par-écran)
-6. [Utiliser OpenCode et Pi](#6-utiliser-opencode-et-pi)
+6. [Utiliser OpenCode, Pi et Hermes](#6-utiliser-opencode-pi-et-hermes)
 7. [Relancer, mettre à jour, désinstaller](#7-relancer-mettre-à-jour-désinstaller)
 8. [En cas de problème](#8-en-cas-de-problème)
 9. [Méthode de secours : l'exécutable à télécharger](#9-méthode-de-secours--lexécutable-à-télécharger)
@@ -53,7 +53,7 @@ L'installateur s'en charge.
 
 ## 2. Créer votre clé Albert
 
-La clé est un mot de passe qui permet à OpenCode et Pi d'utiliser Albert en votre nom.
+La clé est un mot de passe qui permet à vos assistants (OpenCode, Pi, Hermes) d'utiliser Albert en votre nom.
 
 1. Ouvrez la page des clés : **https://albert.playground.etalab.gouv.fr/keys**
    (l'installateur propose aussi un bouton qui l'ouvre pour vous).
@@ -88,13 +88,13 @@ Copiez la ligne correspondant à votre système, collez-la dans le terminal, pui
 **macOS et Linux :**
 
 ```bash
-curl -LsSf https://raw.githubusercontent.com/mrouxprofdemaths/configurateur-albert/v0.1.0/install.sh | sh
+curl -LsSf https://raw.githubusercontent.com/mrouxprofdemaths/configurateur-albert/v0.2.0/install.sh | sh
 ```
 
 **Windows :**
 
 ```powershell
-irm https://raw.githubusercontent.com/mrouxprofdemaths/configurateur-albert/v0.1.0/install.ps1 | iex
+irm https://raw.githubusercontent.com/mrouxprofdemaths/configurateur-albert/v0.2.0/install.ps1 | iex
 ```
 
 > Pour coller dans le terminal : `Cmd ⌘ + V` (macOS), `Ctrl + V` ou clic droit (Windows),
@@ -103,7 +103,7 @@ irm https://raw.githubusercontent.com/mrouxprofdemaths/configurateur-albert/v0.1
 Le terminal affiche alors :
 
 ```text
-=== Configurateur Albert (v0.1.0) ===
+=== Configurateur Albert (v0.2.0) ===
 
 Préparation (une seule fois) : téléchargement de l'outil uv…
 La fenêtre de l'installateur va s'ouvrir (premier lancement : 1 à 2 minutes).
@@ -140,7 +140,7 @@ Le bouton **Désinstaller** (en bas) sert plus tard à tout retirer.
 ![Diagnostic de l'ordinateur](docs/captures/02-diagnostic.png)
 
 L'application examine votre ordinateur : système, Node.js (moteur dont OpenCode et Pi ont
-besoin), OpenCode et Pi déjà présents ou non, clé déjà enregistrée…
+besoin), OpenCode, Pi et Hermes déjà présents ou non, clé déjà enregistrée…
 
 - **Aucune ligne n'est une erreur** : un « **!** » orange signale seulement quelque chose
   que l'application va installer ou régler pour vous.
@@ -166,19 +166,48 @@ connexion…). Si une clé est déjà enregistrée sur l'ordinateur, l'applicati
 
 ![Choix des assistants et du modèle](docs/captures/05-assistants-modele.png)
 
-- **OpenCode** : le plus complet, avec une extension pour VS Code. **Pi** : plus léger, sait
+- **OpenCode** : le plus guidé, avec une extension pour VS Code. **Pi** : plus léger, sait
   aussi recopier le texte d'une image (OCR). Vous pouvez installer les deux.
-- **Modèle par défaut** : la liste est lue en direct chez Albert ; gardez
-  **gemma-4-31b-it** (recommandé) si vous hésitez. Les autres modèles restent accessibles
-  ensuite depuis l'assistant.
+- **Hermes** (décoché par défaut) : agent très complet de Nous Research — mémoire d'une
+  session à l'autre, création de ses propres skills, tâches programmées, messageries
+  (Telegram, Discord…). Son installation est **longue (5 à 15 minutes) et volumineuse (environ
+  2,5 Go)** : réservez-le aux collègues qui en ont l'usage. Sous macOS, il a besoin des
+  « outils de ligne de commande » d'Apple : si l'installateur ouvre la fenêtre d'Apple,
+  cliquez sur **Installer**, attendez la fin, puis relancez la commande.
+- **Modèle par défaut** : la liste est lue en direct chez Albert, elle ne montre donc que les
+  modèles réellement disponibles pour votre clé. Sous la liste, l'encadré **« Ce modèle »**
+  explique à quoi sert le modèle sélectionné, quand le choisir, et donne un exemple. Le
+  bouton **« Quel modèle choisir ? »** ouvre le guide complet :
 
-| Modèle | À utiliser pour |
-|---|---|
-| `gemma-4-31b-it` | usage général, lit aussi les images — **recommandé** |
-| `gpt-oss-120b` | raisonnement plus poussé (quota réduit : 10 requêtes/min) |
-| `deepseek-v4-flash-0731` | programmation uniquement (modèle extra-européen) |
-| `ministral-3-8b-instruct-2512` | petit et rapide (Pi seulement) |
-| `lightonocr-2-1b` | recopier le texte d'une image (Pi seulement) |
+![Guide « Quel modèle choisir ? »](docs/captures/05b-guide-modeles.png)
+
+#### Quel modèle choisir ? (situation au 7 octobre 2026)
+
+**En bref : commencez par `gemma-4-31b-it`.** Changez seulement si vous avez une raison, et
+souvenez-vous que le choix n'est pas définitif : tous les modèles sont déclarés, vous en
+changez à tout moment (`/models` dans OpenCode, `/model` dans Pi et Hermes).
+
+| Modèle | À quoi il sert | Choisissez-le si… | Exemple de demande | Limites |
+|---|---|---|---|---|
+| `gemma-4-31b-it` | généraliste, lit aussi les images | vous hésitez : il convient à presque tout | « Résume cours-chapitre3.md en 10 lignes, puis propose 5 questions de compréhension. » | 50 requêtes/min, 1 000/jour (compte d'expérimentation) |
+| `gpt-oss-120b` | raisonnement poussé, tâches en plusieurs étapes | la tâche est difficile et gemma s'y perd | « Vérifie pas à pas la correction de exercices-probabilites.md. » | **10 requêtes/min** : un assistant atteint vite la limite (erreur 429) ; lent ; pas d'images |
+| `deepseek-v4-flash` | programmation | vous écrivez ou corrigez du code, et seulement dans ce cas | « Ajoute une fonction de moyenne pondérée dans notes.py, avec des tests. » | origine extra-européenne, hébergé par Albert en France ; **phase d'essai terminée le 1er octobre 2026** : il peut être gardé, remplacé ou retiré |
+| `ministral-3-8b-instruct-2512` | petit et rapide, lit les images | tâche simple et répétitive, ou quota des autres atteint | « Corrige l'orthographe de appreciation-trimestre.md. » | moins fiable sur les tâches complexes ; Pi seulement |
+| `lightonocr-2-1b` | recopier le texte d'une image (OCR), formules en LaTeX | vous avez un scan ou une photo de document | `pi --model albert/lightonocr-2-1b @scan.png "Recopie le texte."` | images seulement (pas de PDF) ; Pi seulement |
+
+**Pourquoi ne pas toujours prendre le plus gros ?** Il est plus lent, ses quotas sont plus bas,
+et un assistant envoie souvent plusieurs requêtes pour une seule demande : vous seriez vite
+bloqué. Le modèle moyen (gemma) est le meilleur compromis.
+
+**Volontairement non proposés :** `mistral-small-3-2-24b-instruct-2506` (appels d'outils mal
+formés avec les assistants, retrait prévu le 1er décembre 2026, remplacé par gemma) et
+`qwen3-coder-30b-a3b-instruct` (retiré le 1er octobre 2026, remplacé par deepseek).
+
+> Les avertissements datés (phase d'essai terminée, retrait proche) sont recalculés par
+> l'application à la date du jour. Référence :
+> [documentation officielle des modèles](https://guides.ia.numerique.gouv.fr/albert-api/modeles/available-models).
+> Les modèles changent souvent : en cas de doute, c'est la liste affichée par l'installateur
+> (lue en direct chez Albert) qui fait foi.
 
 - **Extension VS Code** : à cocher si vous utilisez VS Code (la case est grisée sinon).
 - **Vérifier à la fin** : laissez coché ; l'application fera lire un fichier test à chaque assistant.
@@ -187,17 +216,31 @@ connexion…). Si une clé est déjà enregistrée sur l'ordinateur, l'applicati
 
 ![Choix des skills](docs/captures/06-skills.png)
 
-Un skill est un mode d'emploi que l'assistant consulte quand la tâche s'y prête. Les trois
-premiers sont cochés par défaut :
+Un skill est un mode d'emploi que l'assistant consulte quand la tâche s'y prête. Seule sa
+courte description est lue en permanence ; le mode d'emploi complet n'est chargé qu'au besoin.
+
+**Cochés par défaut :**
 
 | Skill | Ce qu'il apporte | Exemple de demande |
 |---|---|---|
 | Anonymiser un texte | retire noms, adresses, numéros… avant tout traitement | « Anonymise compte-rendu.md » |
 | Transcrire un enregistrement audio | mp3/wav → texte ou sous-titres (Whisper d'Albert) | « Transcris cours.mp3 » |
+| Créer ses propres skills | l'assistant vous interroge puis rédige un skill réutilisable pour votre méthode | « Crée un skill pour mes fiches de séance » |
 | Cadre d'usage de l'IA (DINUM) | les 5 principes du guide d'usage de l'IA pour les agents publics | « Puis-je utiliser l'IA pour ce travail ? » |
+| Vérifier avant de conclure | l'assistant prouve qu'une tâche est faite avant de l'annoncer | (automatique) |
+
+**En option :**
+
+| Skill | Ce qu'il apporte | À savoir |
+|---|---|---|
+| Réfléchir avant de produire | cadre le besoin par des questions avant tout travail créatif | plus d'échanges, donc plus de quota |
+| Pack Superpowers complet | 15 skills de méthode pour **programmer** : plans, sous-agents, tests, revue de code, git | pour les collègues qui codent, avec OpenCode (Pi n'a pas de sous-agents) ; gourmand en quota |
 | Données publiques data.gouv.fr | chercher et exploiter des jeux de données publics | « Trouve les effectifs des lycées de la Sarthe » |
 | Accessibilité (RGAA) | vérifier l'accessibilité d'une page web | « Vérifie l'accessibilité de index.html » |
-| Word, PowerPoint, Excel, PDF | créer et modifier ces fichiers (nécessite Python) | « Fais un diaporama à partir de notes.md » |
+| Word, PowerPoint, Excel, PDF | **créer** et modifier ces fichiers | nécessite Python sur le poste ; pour simplement *lire* ces fichiers, le connecteur MarkItDown suffit |
+
+Les skills « Vérifier avant de conclure », « Réfléchir avant de produire » et le pack viennent du
+projet [Superpowers](https://github.com/obra/superpowers) (licence MIT), dans une version figée.
 
 Faites défiler la liste (molette de la souris) pour tout voir.
 
@@ -209,8 +252,16 @@ Un connecteur donne à l'assistant un accès direct à un service extérieur.
 **Choisissez-en peu** : chaque connecteur occupe une partie de la mémoire de travail du
 modèle et consomme du quota Albert.
 
-- **data.gouv.fr** (coché par défaut) : interroger les données publiques, en lecture seule, sans compte.
-- **Context7** : documentation à jour des bibliothèques de programmation (utile surtout pour coder).
+| Connecteur | Ce qu'il apporte | Par défaut |
+|---|---|---|
+| **data.gouv.fr** | interroger les données publiques, en lecture seule, sans compte | coché |
+| **Alliance** | rechercher dans les guides officiels de l'IA dans l'État (guides.ia.numerique.gouv.fr) : usages, déploiement, bonnes pratiques ; sans compte | coché |
+| **MarkItDown** | lire vos PDF, Word, PowerPoint, Excel : il les convertit en texte pour l'assistant. Fonctionne sur votre ordinateur (rien n'est envoyé ailleurs qu'à Albert) | coché |
+| **Context7** | documentation à jour des bibliothèques de programmation (utile surtout pour coder) | décoché |
+
+MarkItDown a besoin de l'outil *uv* : l'installateur l'utilise s'il est déjà présent (méthode du
+terminal) ou l'installe dans votre dossier personnel, puis prépare le connecteur (une minute
+environ, une seule fois). Exemple de demande : « Lis compte-rendu.pdf et résume-le en 10 lignes. »
 
 ### Écran 7 — Récapitulatif
 
@@ -245,7 +296,7 @@ Cliquez sur **Fermer** : le terminal se libère, vous pouvez le fermer.
 
 ---
 
-## 6. Utiliser OpenCode et Pi
+## 6. Utiliser OpenCode, Pi et Hermes
 
 > **Important** : **fermez tous les terminaux** (et VS Code) puis **rouvrez-en un**.
 > Les terminaux ouverts avant l'installation ne connaissent pas encore votre clé.
@@ -271,6 +322,11 @@ opencode        # ou : pi
 | Requête ponctuelle sans interface | `opencode run "…"` | `pi -p "…"` |
 | Reprendre la dernière session | — | `pi --continue` |
 | Quitter | `Ctrl+C` | `Ctrl+C` deux fois |
+
+**Hermes** se lance avec `hermes` (même principe : placez-vous d'abord dans votre dossier).
+`/model` change de modèle, `hermes chat --oneshot -q "…"` pose une question ponctuelle,
+`hermes doctor` diagnostique un problème. Il utilise les mêmes skills et connecteurs que
+les deux autres assistants.
 
 **OCR avec Pi** (recopier le texte d'une image ; images seulement, pas de PDF) :
 
@@ -300,18 +356,18 @@ Rien n'est installé en double : l'application reconnaît ce qu'elle a déjà fa
 
 Sont retirés : les réglages Albert d'OpenCode et de Pi, les skills installés par
 l'application, le chargement automatique de la clé, la copie personnelle de Node.js et,
-si vous le cochez, la clé elle-même et les programmes OpenCode et Pi. **Vos autres réglages
+si vous le cochez, la clé elle-même et les programmes OpenCode, Pi et Hermes. **Vos autres réglages
 ne sont pas touchés.** Pensez à supprimer aussi la clé dans le Playground si vous ne
 l'utilisez plus.
 
 **Mode texte** (sans fenêtre, pour les habitués du terminal) :
 
 ```bash
-curl -LsSf https://raw.githubusercontent.com/mrouxprofdemaths/configurateur-albert/v0.1.0/install.sh | sh -s -- --texte
+curl -LsSf https://raw.githubusercontent.com/mrouxprofdemaths/configurateur-albert/v0.2.0/install.sh | sh -s -- --texte
 ```
 
 ```powershell
-$env:CONFIGURATEUR_TEXTE = "1"; irm https://raw.githubusercontent.com/mrouxprofdemaths/configurateur-albert/v0.1.0/install.ps1 | iex
+$env:CONFIGURATEUR_TEXTE = "1"; irm https://raw.githubusercontent.com/mrouxprofdemaths/configurateur-albert/v0.2.0/install.ps1 | iex
 ```
 
 ---
@@ -322,7 +378,7 @@ $env:CONFIGURATEUR_TEXTE = "1"; irm https://raw.githubusercontent.com/mrouxprofd
 
 | Message ou symptôme | Que faire |
 |---|---|
-| « la version v0.1.0 … est introuvable sur GitHub » | La version n'est pas encore publiée : prévenez la personne qui vous a transmis la commande. En attendant, la commande affichée juste en dessous lance la version en cours de développement. |
+| « la version v0.2.0 … est introuvable sur GitHub » | La version n'est pas encore publiée : prévenez la personne qui vous a transmis la commande. En attendant, la commande affichée juste en dessous lance la version en cours de développement. |
 | `curl: command not found` (Linux) | Installez curl (`sudo apt install curl`) ou demandez au support. |
 | « irm n'est pas reconnu… » (Windows) | Vous êtes dans l'invite de commandes (`cmd`) : ouvrez **PowerShell** ou **Terminal** (voir [étape 3](#3-ouvrir-un-terminal)). |
 | Le terminal reste plusieurs minutes sans rien afficher | Premier lancement : téléchargements en cours, patientez jusqu'à 5 minutes sur une connexion lente. |
@@ -336,6 +392,8 @@ $env:CONFIGURATEUR_TEXTE = "1"; irm https://raw.githubusercontent.com/mrouxprofd
 |---|---|
 | ✖ sur « Node.js » | Installez Node.js (version **LTS**) depuis https://nodejs.org, puis relancez la commande. |
 | ! sur « Réglages Windows » (Git for Windows absent) | Installez Git depuis https://git-scm.com/download/win (options par défaut), puis relancez. |
+| ! sur « Installer Hermes » (macOS) : « outils de ligne de commande » | Cliquez sur **Installer** dans la fenêtre d'Apple, attendez la fin (5 à 10 min), puis relancez la commande. |
+| ✖ sur « Installer Hermes » | Souvent le réseau (téléchargements volumineux) ou l'espace disque (2,5 Go) : réessayez sur une autre connexion ; `hermes doctor` donne le détail. |
 | ✖ sur « Installer OpenCode » : « une autre version reste prioritaire » | Une version 2 d'OpenCode installée autrement (Homebrew…) masque la version 1 : désinstallez-la puis relancez. |
 | ! sur « Vérifications » | Lisez le détail : souvent un quota Albert atteint (429) ou Albert saturé (503). Réessayez plus tard ; le reste de l'installation est en place. |
 
@@ -401,8 +459,9 @@ logiciels). Pas de télémétrie, pas de compte à créer en dehors du Playgroun
 | Node.js (si absent ou trop ancien) | `~/.local/share/configurateur-albert/node` (Windows : `%LOCALAPPDATA%\configurateur-albert\node`) |
 | OpenCode | `~/.config/opencode/opencode.json` (section `albert` seulement) |
 | Pi | `~/.pi/agent/models.json`, `settings.json`, `mcp.json` |
+| Hermes | `~/.hermes/config.yaml` (Windows : `%LOCALAPPDATA%\hermes\config.yaml`), modifié uniquement par la commande `hermes config set` : fournisseur `albert`, connecteurs, et `~/.agents/skills` ajouté aux dossiers de skills |
 | Skills | `~/.agents/skills/` (lu par OpenCode et par Pi) |
-| Outil uv et son Python (méthode du terminal) | `~/.local/share/configurateur-albert/uv` et `~/.cache/uv` (Windows : `%LOCALAPPDATA%\configurateur-albert\uv` et `%LOCALAPPDATA%\uv`) ; non retirés par la désinstallation, supprimables à la main |
+| Outil uv et son Python (méthode du terminal, ou connecteur MarkItDown) | `~/.local/share/configurateur-albert/uv` et `~/.cache/uv` (Windows : `%LOCALAPPDATA%\configurateur-albert\uv` et `%LOCALAPPDATA%\uv`) ; non retirés par la désinstallation, supprimables à la main |
 
 Vos autres réglages (autres fournisseurs d'IA, autres connecteurs, skills personnels) ne
 sont **jamais** modifiés : un skill du même nom que l'un des nôtres, mais créé par vous,
@@ -422,8 +481,10 @@ est laissé tel quel.
 terminal et accéder à GitHub ; aucun droit administrateur n'est requis. Un poste très verrouillé
 peut bloquer la commande : il faut alors passer par le support informatique.
 
-**OpenCode ou Pi ?** OpenCode pour commencer (plus guidé, extension VS Code). Pi si vous voulez
-l'OCR ou un outil plus léger. Rien n'empêche d'installer les deux.
+**OpenCode, Pi ou Hermes ?** OpenCode pour commencer (plus guidé, extension VS Code). Pi si vous
+voulez l'OCR ou un outil plus léger. Hermes pour les collègues qui veulent un agent qui se
+souvient d'eux, crée ses propres skills et peut travailler sur des tâches programmées — au prix
+d'une installation bien plus lourde. Rien n'empêche d'en installer plusieurs.
 
 **Ma clé expire. Que faire ?** Créez-en une nouvelle dans le Playground et relancez la commande
 de l'[étape 4](#4-lancer-linstallateur) : choisissez « Utiliser une nouvelle clé ».
@@ -469,7 +530,7 @@ pas de modification du PATH ni du shell), puis lancent
 `uv tool run --python 3.12 --from "configurateur-albert @ <archive de l'étiquette>" configurateur-albert`
 avec `UV_PYTHON_PREFERENCE=only-managed` (Python de uv, qui contient Tkinter).
 
-- La version est **figée** dans chaque script (`v0.1.0`) : voir « Publier une nouvelle version ».
+- La version est **figée** dans chaque script (`v0.2.0`) : voir « Publier une nouvelle version ».
 - `CONFIGURATEUR_SOURCE=<chemin>` lance une copie locale (utilisé par la CI) ;
   `CONFIGURATEUR_REF=<étiquette ou branche>` choisit une autre version (ex. `main`).
 - `install.ps1` est en ASCII pur (compatibilité Windows PowerShell 5.1) et tout son code est dans un
@@ -478,7 +539,7 @@ avec `UV_PYTHON_PREFERENCE=only-managed` (Python de uv, qui contient Tkinter).
 
 ### Publier une nouvelle version
 
-Les commandes du README pointent vers une **étiquette** (`v0.1.0`) : tant qu'elle n'existe pas
+Les commandes du README pointent vers une **étiquette** (`v0.2.0`) : tant qu'elle n'existe pas
 sur GitHub, elles renvoient une erreur 404.
 
 1. Choisir le numéro (par exemple `0.2.0`, donc l’étiquette `v0.2.0` ; ci-dessous `vX.Y.Z`) et le reporter **partout** : `__version__` dans
@@ -499,7 +560,7 @@ version en cours : `curl -LsSf …/main/install.sh | CONFIGURATEUR_REF=main sh` 
 ### Construire les exécutables
 
 La CI GitHub Actions (`.github/workflows/build.yml`) lance les tests sur les 3 systèmes,
-puis construit les exécutables avec PyInstaller. Pousser une étiquette `v0.1.0` crée un
+puis construit les exécutables avec PyInstaller. Pousser une étiquette `v0.2.0` crée un
 brouillon de *Release* avec les trois fichiers. En local :
 
 ```bash

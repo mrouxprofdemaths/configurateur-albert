@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Protocol
 
-from . import albert, configs, keystore, node, paths, skills, state, system
+from . import albert, configs, hermes, keystore, node, paths, skills, state, system, uvtool
 from .albert import Model
 from .jsonfiles import ConfigError
 from .paths import IS_WINDOWS
@@ -37,6 +37,7 @@ STEPS = [
     ("windows", "Réglages Windows"),
     ("opencode", "Installer OpenCode"),
     ("pi", "Installer Pi"),
+    ("hermes", "Installer Hermes"),
     ("config", "Brancher Albert (configurations)"),
     ("skills", "Installer les skills"),
     ("vscode", "Extension VS Code"),
@@ -51,6 +52,7 @@ class Plan:
     default_model: str
     opencode: bool = True
     pi: bool = True
+    hermes: bool = False
     skills: list[str] = field(default_factory=list)
     mcp: list[str] = field(default_factory=list)
     vscode: bool = False
@@ -69,6 +71,7 @@ class Diagnostic:
     pi: str | None
     vscode: bool
     key: str | None
+    hermes: str | None = None
 
     @property
     def opencode_major(self) -> int | None:
@@ -90,6 +93,7 @@ def diagnose() -> Diagnostic:
         pi=system.tool_version("pi"),
         vscode=system.which("code") is not None,
         key=keystore.existing_key(),
+        hermes=hermes.version(),
     )
 
 
@@ -249,11 +253,38 @@ class _Run:
         else:
             self.set("pi", ERROR, "Échec de l'installation de Pi (voir le journal)")
 
+    # 5 bis. Hermes
+    def hermes_step(self) -> None:
+        if not self.plan.hermes:
+            self.set("hermes", SKIP, "Non demandé")
+            return
+        self.set("hermes", RUNNING)
+        if hermes.find():
+            self.set("hermes", OK, f"Déjà installé (version {hermes.version()})")
+            return
+        if not hermes.mac_developer_tools_ready():
+            hermes.request_mac_developer_tools()
+            self.set("hermes", WARN, "macOS doit d'abord installer ses « outils de ligne de commande » : "
+                                     "cliquez sur « Installer » dans la fenêtre d'Apple qui vient de s'ouvrir, "
+                                     "attendez la fin (5 à 10 min), puis relancez l'application")
+            return
+        try:
+            ok = hermes.install(self.log)
+        except Exception as e:  # noqa: BLE001
+            self.log(f"Installation de Hermes impossible : {e}")
+            ok = False
+        if ok:
+            state.update(hermes_installed=True)
+            self.set("hermes", OK, f"Version {hermes.version()} installée")
+        else:
+            self.set("hermes", ERROR, "Échec de l'installation de Hermes (voir le journal)")
+
     # 6. Configurations
     def config(self) -> None:
         self.set("config", RUNNING)
         mcp_items = catalog_items("mcp", self.plan.mcp)
-        errors = []
+        errors, warnings = [], []
+        mcp_items = self._prepare_python_mcp(mcp_items, warnings)
         if self.plan.opencode:
             if self._opencode_major() not in (None, 1):
                 errors.append("OpenCode v2 détecté : configuration non écrite (format différent)")
@@ -277,9 +308,44 @@ class _Run:
                     state.update(pi_shell_path=True)
             except (OSError, ConfigError) as e:
                 errors.append(str(e))
-        state.update(mcp=self.plan.mcp)
-        self.set("config", ERROR if errors else OK, " ; ".join(errors) or
+        if self.plan.hermes and hermes.find():
+            try:
+                entries = [(i["id"], hermes.mcp_value(configs.mcp_entry(i))) for i in mcp_items]
+                for line in hermes.configure(self.plan.models, self.plan.default_model, entries,
+                                             paths.skills_dir(), self.plan.set_default, self.log):
+                    self.log(line)
+                state.update(hermes=True, hermes_models=[m.id for m in self.plan.models])
+            except (OSError, hermes.HermesError) as e:
+                errors.append(f"Hermes : {e}")
+        state.update(mcp=[i["id"] for i in mcp_items])
+        status = ERROR if errors else WARN if warnings else OK
+        self.set("config", status, " ; ".join(errors + warnings) or
                  f"Modèle par défaut : {self.plan.default_model}")
+
+    def _prepare_python_mcp(self, items: list[dict], errors: list[str]) -> list[dict]:
+        """Connecteurs lancés par uvx : installe uv si besoin, puis précharge le paquet
+        (sinon le premier appel de l'assistant dépasserait son délai d'attente)."""
+        needing = [i for i in items if i.get("requires") == "uv"]
+        if not needing:
+            return items
+        try:
+            uvx = uvtool.ensure(self.log)
+        except Exception as e:  # noqa: BLE001
+            self.log(f"Installation de uv impossible : {e}")
+            uvx = None
+        kept = [i for i in items if i.get("requires") != "uv"]
+        for item in needing:
+            if not uvx:
+                errors.append(f"{item['name']} non installé (outil uv indisponible)")
+                continue
+            self.log(f"Préparation du connecteur {item['name']} (téléchargement, une seule fois)…")
+            r = system.run([uvx, *item["command"][1:], *item.get("prepare", [])], self.log,
+                           env=system.child_env(), timeout=900)
+            if r.ok:
+                kept.append(item)
+            else:
+                errors.append(f"{item['name']} : préparation échouée (voir le journal)")
+        return kept
 
     # 7. Skills
     def skills(self) -> None:
@@ -288,16 +354,28 @@ class _Run:
             self.set("skills", SKIP, "Aucun skill choisi")
             return
         self.set("skills", RUNNING)
-        done, failed = [], []
-        for item in items:
+        done, failed, seen = [], [], set()
+        for entry in items:
             try:
-                status = skills.install(item, self.log)
-                self.log(f"  {item['name']} : {status}")
-                if status != "ignoré":
-                    done.append(item["id"])
+                expanded = skills.expand(entry)
             except Exception as e:  # noqa: BLE001
-                failed.append(item["name"])
-                self.log(f"  {item['name']} : échec ({e})")
+                failed.append(entry["name"])
+                self.log(f"  {entry['name']} : échec ({e})")
+                continue
+            if len(expanded) > 1:
+                self.log(f"  {entry['name']} : {len(expanded)} skills")
+            for item in expanded:
+                if item["id"] in seen:  # un skill choisi seul et aussi présent dans un pack
+                    continue
+                seen.add(item["id"])
+                try:
+                    status = skills.install(item, self.log)
+                    self.log(f"  {item['name']} : {status}")
+                    if status != "ignoré":
+                        done.append(item["id"])
+                except Exception as e:  # noqa: BLE001
+                    failed.append(item["name"])
+                    self.log(f"  {item['name']} : échec ({e})")
         state.update(skills=done)
         self.set("skills", WARN if failed else OK,
                  (f"Échec : {', '.join(failed)}" if failed else f"{len(done)} skill(s) dans {paths.skills_dir()}"))
@@ -354,6 +432,13 @@ class _Run:
                 ok = TEST_CODE in r.output
                 report.append("Pi : OK" if ok else "Pi : échec")
                 bad |= not ok
+            if self.plan.hermes and hermes.find():
+                self.log(f"Test de Hermes avec {self.plan.default_model} (lecture d'un fichier)…")
+                r = system.run(hermes.oneshot_command(prompt, self.plan.default_model),
+                               self.log, env=env, cwd=tmp, timeout=420)
+                ok = TEST_CODE in r.output
+                report.append("Hermes : OK" if ok else "Hermes : échec")
+                bad |= not ok
         finally:
             shutil.rmtree(tmp, ignore_errors=True)
         self.set("test", WARN if bad else OK, " · ".join(report))
@@ -368,6 +453,7 @@ def run_plan(plan: Plan, rep: Reporter) -> dict[str, str]:
     r.windows()
     r.opencode()
     r.pi()
+    r.hermes_step()
     r.config()
     r.skills()
     r.vscode()
@@ -388,6 +474,11 @@ def uninstall(rep: Reporter, remove_key: bool = True, remove_node: bool = True,
         rep.log(line)
     for line in configs.remove_pi(mcp_ids, st.get("pi_shell_path", False)):
         rep.log(line)
+    if st.get("hermes"):
+        system.refresh_path()
+        hermes.remove(mcp_ids, paths.skills_dir(), rep.log)
+        if remove_tools and st.get("hermes_installed"):
+            hermes.uninstall_program(rep.log)
     for sid in st.get("skills", []):
         if skills.remove(sid):
             rep.log(f"Skill retiré : {sid}")

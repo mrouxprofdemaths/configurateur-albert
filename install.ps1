@@ -1,6 +1,6 @@
 # Configurateur Albert - lancement depuis PowerShell (Windows).
 #
-#   irm https://raw.githubusercontent.com/mrouxprofdemaths/configurateur-albert/v0.1.0/install.ps1 | iex
+#   irm https://raw.githubusercontent.com/mrouxprofdemaths/configurateur-albert/v0.2.0/install.ps1 | iex
 #
 # Mode texte (sans fenetre) : $env:CONFIGURATEUR_TEXTE = "1" avant la commande ci-dessus.
 # Autres options : $env:CONFIGURATEUR_ARGS = "--desinstaller" (par exemple).
@@ -16,10 +16,10 @@
     # Windows PowerShell 5.1 n'active pas toujours TLS 1.2 par defaut.
     [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 
-    $Ref = if ($env:CONFIGURATEUR_REF) { $env:CONFIGURATEUR_REF } else { "v0.1.0" }
+    $Ref = if ($env:CONFIGURATEUR_REF) { $env:CONFIGURATEUR_REF } else { "v0.2.0" }
     $Repo = "mrouxprofdemaths/configurateur-albert"
     # CONFIGURATEUR_SOURCE permet de tester une copie locale (utilise par la CI).
-    # Archive GitHub de la version : etiquette (v0.1.0) ou branche (main).
+    # Archive GitHub de la version : etiquette (v0.2.0) ou branche (main).
     $Archive = "https://github.com/$Repo/archive/$Ref.tar.gz"
     $Source = if ($env:CONFIGURATEUR_SOURCE) { $env:CONFIGURATEUR_SOURCE } `
               else { "configurateur-albert @ $Archive" }
