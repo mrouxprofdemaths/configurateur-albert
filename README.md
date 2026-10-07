@@ -226,6 +226,7 @@ modèle et consomme du quota Albert.
 | Connecteur | Ce qu'il apporte | Par défaut |
 |---|---|---|
 | **data.gouv.fr** | interroger les données publiques, en lecture seule, sans compte | coché |
+| **Alliance** | rechercher dans les guides officiels de l'IA dans l'État (guides.ia.numerique.gouv.fr) : usages, déploiement, bonnes pratiques ; sans compte | coché |
 | **MarkItDown** | lire vos PDF, Word, PowerPoint, Excel : il les convertit en texte pour l'assistant. Fonctionne sur votre ordinateur (rien n'est envoyé ailleurs qu'à Albert) | coché |
 | **Context7** | documentation à jour des bibliothèques de programmation (utile surtout pour coder) | décoché |
 

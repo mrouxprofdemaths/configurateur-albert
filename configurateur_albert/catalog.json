@@ -158,6 +158,14 @@
       "default": true
     },
     {
+      "id": "alliance",
+      "name": "Alliance (guides IA dans l'État)",
+      "description": "Recherche dans les guides officiels de l'IA dans l'État (guides.ia.numerique.gouv.fr) : usages, déploiement, bonnes pratiques. Sans compte.",
+      "type": "remote",
+      "url": "https://guides.ia.numerique.gouv.fr/~gitbook/mcp",
+      "default": true
+    },
+    {
       "id": "context7",
       "name": "Context7",
       "description": "Documentation à jour des bibliothèques de programmation. Sans compte (débit limité).",
