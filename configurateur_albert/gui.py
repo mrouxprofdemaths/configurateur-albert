@@ -304,6 +304,29 @@ class App(tk.Tk):
         canvas.configure(yscrollcommand=scroll.set)
         canvas.pack(side="left", fill="both", expand=True)
         scroll.pack(side="right", fill="y")
+
+        # Molette de la souris (Tk ne la relie pas tout seul à un Canvas).
+        def wheel(event) -> None:
+            if getattr(event, "num", None) == 4:
+                step = -1
+            elif getattr(event, "num", None) == 5:
+                step = 1
+            else:
+                step = -1 if event.delta > 0 else 1
+            canvas.yview_scroll(step, "units")
+
+        def bind_wheel(_e=None) -> None:
+            canvas.bind_all("<MouseWheel>", wheel)      # Windows, macOS
+            canvas.bind_all("<Button-4>", wheel)        # Linux
+            canvas.bind_all("<Button-5>", wheel)
+
+        def unbind_wheel(_e=None) -> None:
+            for seq in ("<MouseWheel>", "<Button-4>", "<Button-5>"):
+                canvas.unbind_all(seq)
+
+        canvas.bind("<Enter>", bind_wheel)
+        canvas.bind("<Leave>", unbind_wheel)
+        canvas.bind("<Destroy>", unbind_wheel)
         for item in items:
             ttk.Checkbutton(inner, text=item["name"], variable=variables[item["id"]]).pack(anchor="w", pady=(6, 0))
             ttk.Label(inner, text=item["description"], wraplength=700,
