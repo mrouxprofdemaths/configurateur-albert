@@ -18,9 +18,43 @@ Public visé : enseignant·es et agents publics **sans compétence technique**
 - Une connexion Internet.
 - Aucun droit administrateur n'est nécessaire.
 
-### 2. Télécharger
+### 2. Lancer l'installateur (méthode conseillée)
 
-Page **Releases** du dépôt, puis le fichier de votre système :
+Ouvrez un terminal, copiez-y **une seule ligne**, puis appuyez sur Entrée.
+La fenêtre de l'installateur s'ouvre ensuite toute seule ; **laissez le terminal ouvert**
+jusqu'à la fin.
+
+**macOS** — ouvrez l'application *Terminal* (Launchpad → Autres → Terminal, ou
+`Cmd + Espace` puis tapez « Terminal ») et collez :
+
+```bash
+curl -LsSf https://raw.githubusercontent.com/mrouxprofdemaths/configurateur-albert/v0.1.0/install.sh | sh
+```
+
+**Linux** — ouvrez un terminal et collez la même ligne.
+
+**Windows** — clic droit sur le bouton Démarrer → *Terminal* (ou *Windows PowerShell*),
+puis collez :
+
+```powershell
+irm https://raw.githubusercontent.com/mrouxprofdemaths/configurateur-albert/v0.1.0/install.ps1 | iex
+```
+
+Le premier lancement prend 1 à 2 minutes (téléchargement de l'outil *uv* et d'un Python
+privé, rangés dans votre dossier personnel, sans droits administrateur). Cette méthode
+n'est pas bloquée par Gatekeeper (macOS) ni par SmartScreen (Windows), car aucun programme
+téléchargé n'est ouvert par double-clic.
+
+Variantes :
+
+| Besoin | macOS / Linux | Windows |
+|---|---|---|
+| Mode texte (sans fenêtre) | `… install.sh \| sh -s -- --texte` | `$env:CONFIGURATEUR_TEXTE = "1"` puis la commande |
+| Désinstaller | relancer la commande, bouton **Désinstaller** de la page d'accueil | idem |
+
+### 3. Méthode de secours : exécutable à télécharger
+
+Si le terminal vous est impossible, la page **Releases** du dépôt propose un exécutable :
 
 | Système | Fichier |
 |---|---|
@@ -28,20 +62,19 @@ Page **Releases** du dépôt, puis le fichier de votre système :
 | macOS (Apple M1, M2, M3…) | `ConfigurateurAlbert-macOS.zip` (double-cliquer pour décompresser) |
 | Linux | `ConfigurateurAlbert-Linux` |
 
-### 3. Ouvrir l'application la première fois
-
-L'application n'est pas signée par Apple ni par Microsoft : votre système affiche
-donc un avertissement la première fois. C'est normal.
+Il n'est pas signé par Apple ni par Microsoft : le système affiche un avertissement la
+première fois, et un poste d'établissement verrouillé peut le refuser.
 
 - **macOS** : double-cliquez sur *ConfigurateurAlbert*. Si macOS refuse de l'ouvrir,
   allez dans **Réglages Système → Confidentialité et sécurité**, descendez jusqu'au
   message concernant ConfigurateurAlbert et cliquez sur **Ouvrir quand même**.
 - **Windows** : si « Windows a protégé votre ordinateur » s'affiche, cliquez sur
-  **Informations complémentaires**, puis **Exécuter quand même**.
-- **Linux** : clic droit → Propriétés → cocher « Autoriser l'exécution », ou bien
-  `chmod +x ConfigurateurAlbert-Linux`.
+  **Informations complémentaires**, puis **Exécuter quand même**. L'antivirus peut aussi
+  mettre le fichier en quarantaine (faux positif fréquent avec ce type d'exécutable) :
+  préférez alors la méthode du terminal.
+- **Linux** : `chmod +x ConfigurateurAlbert-Linux`, puis lancez-le.
 
-### 4. Suivre les étapes
+### 4. Suivre les étapes de la fenêtre
 
 1. **Diagnostic** de l'ordinateur. Un « ! » orange n'est pas une erreur : l'application s'en occupe.
 2. **Clé Albert** : bouton pour ouvrir la page des clés, coller la clé, tester.
@@ -65,6 +98,7 @@ retire tout ce qu'elle a ajouté.
 | OpenCode | `~/.config/opencode/opencode.json` (section `albert` seulement) |
 | Pi | `~/.pi/agent/models.json`, `settings.json`, `mcp.json` |
 | Skills | `~/.agents/skills/` (lu par OpenCode et par Pi) |
+| Outil uv et son Python (méthode du terminal) | `~/.local/share/configurateur-albert/uv` et `~/.cache/uv` (Windows : `%LOCALAPPDATA%\configurateur-albert\uv` et `%LOCALAPPDATA%\uv`) ; non retirés par la désinstallation, supprimables à la main |
 
 Avant chaque modification, une copie datée est faite (`opencode.json.bak-20261007-142501`…).
 Vos autres réglages (autres fournisseurs, autres MCP, skills personnels) ne sont jamais touchés.
@@ -98,6 +132,21 @@ python3 -m ruff check . && python3 -m pytest -q
 ```
 
 Les tests utilisent un dossier personnel jetable : ils ne touchent jamais au vrai `$HOME`.
+
+### Scripts d'amorçage (`install.sh`, `install.ps1`)
+
+Ils installent [uv](https://docs.astral.sh/uv/) dans un dossier privé (`UV_UNMANAGED_INSTALL` :
+pas de modification du PATH ni du shell), puis lancent
+`uv tool run --python 3.12 --from "configurateur-albert @ <archive de l'étiquette>" configurateur-albert`
+avec `UV_PYTHON_PREFERENCE=only-managed` (Python de uv, qui contient Tkinter).
+
+- La version est **figée** dans chaque script (`v0.1.0`) : à chaque nouvelle version, mettre à jour
+  `REF`/`$Ref` dans les deux scripts **et** les URL du README, puis créer l'étiquette correspondante.
+- `CONFIGURATEUR_SOURCE=<chemin>` lance une copie locale (utilisé par la CI) ;
+  `CONFIGURATEUR_REF=<étiquette>` choisit une autre version.
+- `install.ps1` est en ASCII pur (compatibilité Windows PowerShell 5.1) et tout son code est dans un
+  bloc `& { … }` : sous `irm | iex`, rien ne reste dans la session de l'utilisateur, et il n'appelle
+  jamais `exit` (cela fermerait sa fenêtre).
 
 ### Construire les exécutables
 

@@ -457,5 +457,11 @@ def run() -> int:
             ctypes.windll.shcore.SetProcessDpiAwareness(1)
         except Exception:  # noqa: BLE001
             pass
-    App().mainloop()
+    app = App()
+    # Lancée depuis un terminal (macOS surtout), la fenêtre s'ouvrirait derrière lui.
+    app.lift()
+    app.attributes("-topmost", True)
+    app.after(800, lambda: app.attributes("-topmost", False))
+    app.focus_force()
+    app.mainloop()
     return 0
