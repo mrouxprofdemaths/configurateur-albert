@@ -191,6 +191,9 @@ class App(tk.Tk):
         rows.append(("Hermes", d.hermes or "absent (facultatif)", "ok" if d.hermes else ""))
         rows.append(("Clé Albert", f"déjà enregistrée ({albert.mask(d.key)})" if d.key else "pas encore enregistrée",
                      "ok" if d.key else "attention"))
+        if d.albert_in:
+            rows.append(("Albert", "déjà configuré dans " + ", ".join(d.albert_in)
+                         + " : les réglages seront mis à jour (avec sauvegarde)", "ok"))
         rows.append(("VS Code", "présent" if d.vscode else "absent (facultatif)", "ok" if d.vscode else ""))
         grid = ttk.Frame(self.diag_frame)
         grid.pack(anchor="w")

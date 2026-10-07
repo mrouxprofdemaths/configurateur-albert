@@ -396,3 +396,31 @@ def test_outil_deja_installe_seulement_configure():
     assert "seulement configuré" in installer.tool_choice("hermes", diag(hermes="0.12.0"))[1]
     assert "5 à 15 min" in installer.tool_choice("hermes", diag())[1]
     assert installer.tool_choice("pi", None)[1] == "sera installé puis configuré"
+
+
+def test_run_delai_garanti_meme_sans_sortie():
+    """Une commande muette (et ses sous-processus qui gardent la sortie ouverte) est
+    arrêtée au délai : l'installateur ne doit jamais rester bloqué."""
+    import sys
+    import time
+
+    from configurateur_albert import system
+
+    code = ("import subprocess, sys, time; "
+            "subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(60)']); time.sleep(60)")
+    messages = []
+    t = time.monotonic()
+    r = system.run([sys.executable, "-c", code], messages.append, timeout=3, heartbeat=1)
+    assert time.monotonic() - t < 20
+    assert r.code == 124 and "délai" in r.output
+    assert any("toujours en cours" in m for m in messages)
+
+
+def test_albert_deja_configure(home):
+    from configurateur_albert import configs, paths
+
+    assert configs.albert_configured() == []
+    f = paths.opencode_config_file()
+    f.parent.mkdir(parents=True, exist_ok=True)
+    f.write_text('{"provider": {"albert": {}}}', encoding="utf-8")
+    assert configs.albert_configured() == ["OpenCode"]

@@ -72,6 +72,8 @@ def main_install() -> int:
     d = installer.diagnose()
     print(f"  Système : {d.os}\n  Node.js : {d.node or 'absent'}\n"
           f"  OpenCode : {d.opencode or 'absent'}\n  Pi : {d.pi or 'absent'}\n  Hermes : {d.hermes or 'absent'}")
+    if d.albert_in:
+        print(f"  Albert déjà configuré dans : {', '.join(d.albert_in)} (réglages mis à jour, avec sauvegarde)")
     key, models = choose_key(d)
 
     default = albert.default_model_id(models)

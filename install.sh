@@ -1,7 +1,7 @@
 #!/bin/sh
 # Configurateur Albert — lancement depuis le terminal (macOS / Linux).
 #
-#   curl -LsSf https://forge.apps.education.fr/rouxpierre-edouard/configurateur-albert/-/raw/v0.2.2/install.sh | sh
+#   curl -LsSf https://forge.apps.education.fr/rouxpierre-edouard/configurateur-albert/-/raw/v0.2.3/install.sh | sh
 #
 # Mode texte (sans fenêtre) :
 #   curl -LsSf …/install.sh | sh -s -- --texte
@@ -12,10 +12,10 @@
 #   2. lance le Configurateur Albert (version figée ci-dessous) avec un Python fourni par uv.
 set -eu
 
-REF="${CONFIGURATEUR_REF:-v0.2.2}"
+REF="${CONFIGURATEUR_REF:-v0.2.3}"
 DEPOT="https://forge.apps.education.fr/rouxpierre-edouard/configurateur-albert"
 # Archive de la version sur la Forge des communs numériques éducatifs : fonctionne pour
-# une étiquette (v0.2.2) comme pour une branche (main).
+# une étiquette (v0.2.3) comme pour une branche (main).
 ARCHIVE="$DEPOT/-/archive/$REF/$REF.tar.gz"
 # CONFIGURATEUR_SOURCE permet de tester une copie locale (utilisé par la CI).
 SOURCE="${CONFIGURATEUR_SOURCE:-configurateur-albert @ $ARCHIVE}"

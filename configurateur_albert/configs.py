@@ -31,6 +31,22 @@ def mcp_entry(item: dict) -> dict:
     return {"type": "local", "command": cmd}
 
 
+def albert_configured() -> list[str]:
+    """Assistants dont la configuration déclare déjà le fournisseur Albert."""
+    found = []
+    try:
+        if PROVIDER in (jsonfiles.load(paths.opencode_config_file()).get("provider") or {}):
+            found.append("OpenCode")
+    except (OSError, jsonfiles.ConfigError, ValueError):
+        pass
+    try:
+        if PROVIDER in (jsonfiles.load(paths.pi_models_file()).get("providers") or {}):
+            found.append("Pi")
+    except (OSError, jsonfiles.ConfigError, ValueError):
+        pass
+    return found
+
+
 # --- OpenCode -----------------------------------------------------------------
 
 def opencode_provider(models: list[Model]) -> dict:
