@@ -11,7 +11,7 @@ from tkinter import font as tkfont
 from tkinter import messagebox, ttk
 from tkinter.scrolledtext import ScrolledText
 
-from . import APP_NAME, __version__, albert, installer, paths, texts
+from . import APP_NAME, __version__, albert, installer, modelguide, paths, texts
 from .installer import Plan
 
 PAD = 12
@@ -272,27 +272,91 @@ class App(tk.Tk):
         ttk.Checkbutton(self.body, text="Hermes — agent très complet (mémoire, automatisations, messageries) ; "
                         "installation longue : 5 à 15 min" + (f" (installé : {d.hermes})" if d and d.hermes else ""),
                         variable=self.var_hermes).pack(anchor="w", pady=2)
-        ttk.Label(self.body, text="\nModèle utilisé par défaut (modifiable ensuite dans l'assistant) :").pack(anchor="w")
-        labels = [f"{m.id} — {m.label}" for m in self.models]
-        combo = ttk.Combobox(self.body, values=labels, state="readonly", width=90)
-        default = self.var_model.get() or albert.default_model_id(self.models)
-        for i, m in enumerate(self.models):
-            if m.id == default:
-                combo.current(i)
-        combo.bind("<<ComboboxSelected>>", lambda e: self.var_model.set(self.models[combo.current()].id))
-        self.var_model.set(default or "")
-        combo.pack(anchor="w", pady=4)
-        ttk.Label(self.body, text="Tous les modèles disponibles seront déclarés ; seul le choix par défaut change.",
-                  style="Small.TLabel").pack(anchor="w")
-        ttk.Label(self.body, text="").pack()
         cb = ttk.Checkbutton(self.body, text="Installer l'extension OpenCode pour VS Code",
                              variable=self.var_vscode)
-        cb.pack(anchor="w")
+        cb.pack(anchor="w", pady=(8, 0))
         if not (d and d.vscode):
             cb.state(["disabled"])
             self.var_vscode.set(False)
         ttk.Checkbutton(self.body, text="Vérifier à la fin que tout fonctionne (environ 1 à 2 minutes)",
                         variable=self.var_tests).pack(anchor="w", pady=2)
+
+        ttk.Label(self.body, text="\nModèle utilisé par défaut (vous pourrez en changer à tout moment) :").pack(anchor="w")
+        row = ttk.Frame(self.body)
+        row.pack(fill="x", pady=4)
+        labels = [f"{m.id} — {m.name}" for m in self.models]
+        combo = ttk.Combobox(row, values=labels, state="readonly", width=60)
+        combo.pack(side="left")
+        ttk.Button(row, text="Quel modèle choisir ?", command=self.open_model_guide).pack(side="left", padx=8)
+        box = ttk.LabelFrame(self.body, text="Ce modèle", padding=8)
+        box.pack(fill="x", pady=(4, 0))
+        info = ttk.Label(box, justify="left", wraplength=740)
+        info.pack(anchor="w", fill="x")
+        warn = ttk.Label(box, justify="left", wraplength=740, foreground=ICONS["attention"][1])
+        warn.pack(anchor="w", fill="x")
+
+        def show(model_id: str) -> None:
+            self.var_model.set(model_id)
+            m = next(x for x in self.models if x.id == model_id)
+            f = modelguide.fiche(m)
+            text = f"À quoi il sert : {f.role}\nChoisissez-le si : {f.choose_if}"
+            if f.example:
+                text += f"\nExemple : {f.example}"
+            info.configure(text=text)
+            warn.configure(text=f"! {f.status}" if f.status else "")
+
+        default = self.var_model.get() or albert.default_model_id(self.models)
+        for i, m in enumerate(self.models):
+            if m.id == default:
+                combo.current(i)
+        combo.bind("<<ComboboxSelected>>", lambda e: show(self.models[combo.current()].id))
+        if default:
+            show(default)
+
+    def open_model_guide(self) -> None:
+        """Fenêtre « Quel modèle choisir ? » : conseils, fiche de chaque modèle disponible."""
+        win = tk.Toplevel(self)
+        win.title("Quel modèle choisir ?")
+        win.geometry("780x600")
+        outer = ttk.Frame(win, padding=PAD)
+        outer.pack(fill="both", expand=True)
+        canvas = tk.Canvas(outer, highlightthickness=0)
+        scroll = ttk.Scrollbar(outer, orient="vertical", command=canvas.yview)
+        inner = ttk.Frame(canvas)
+        inner.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        canvas.create_window((0, 0), window=inner, anchor="nw")
+        canvas.configure(yscrollcommand=scroll.set)
+        canvas.pack(side="left", fill="both", expand=True)
+        scroll.pack(side="right", fill="y")
+        win.bind("<MouseWheel>", lambda e: canvas.yview_scroll(-1 if e.delta > 0 else 1, "units"))
+        win.bind("<Button-4>", lambda e: canvas.yview_scroll(-1, "units"))
+        win.bind("<Button-5>", lambda e: canvas.yview_scroll(1, "units"))
+
+        ttk.Label(inner, text="Comment choisir", font=self.font_icon).pack(anchor="w")
+        for h in modelguide.HOW_TO_CHOOSE:
+            ttk.Label(inner, text="• " + h, wraplength=700, justify="left").pack(anchor="w", pady=1)
+        for m in self.models:
+            f = modelguide.fiche(m)
+            ttk.Label(inner, text=f"\n{f.name}  ({f.id})", font=self.font_icon).pack(anchor="w")
+            for title, value in (("À quoi il sert", f.role), ("Choisissez-le si", f.choose_if),
+                                 ("Exemple", f.example), ("Limites", f.limits)):
+                if value:
+                    ttk.Label(inner, text=f"{title} : {value}", wraplength=700, justify="left").pack(anchor="w", padx=(12, 0))
+            if f.status:
+                ttk.Label(inner, text=f"! {f.status}", wraplength=700, justify="left",
+                          foreground=ICONS["attention"][1]).pack(anchor="w", padx=(12, 0))
+        excl = modelguide.excluded_notes()
+        if excl:
+            ttk.Label(inner, text="\nModèles volontairement non proposés", font=self.font_icon).pack(anchor="w")
+            for n in excl:
+                ttk.Label(inner, text="• " + n, wraplength=700, justify="left", style="Small.TLabel").pack(anchor="w")
+        ttk.Label(inner, text=f"\nDescriptions vérifiées le {modelguide.checked_on()}. La liste ci-dessus est "
+                              "celle qu'Albert propose aujourd'hui à votre clé.",
+                  wraplength=700, justify="left", style="Small.TLabel").pack(anchor="w")
+        doc = paths.catalog()["albert"]["models_doc_url"]
+        ttk.Button(inner, text="Documentation officielle des modèles",
+                   command=lambda: webbrowser.open(doc)).pack(anchor="w", pady=8)
+        self.guide_window = win
 
     def validate_3(self) -> bool:
         if not (self.var_opencode.get() or self.var_pi.get() or self.var_hermes.get()):

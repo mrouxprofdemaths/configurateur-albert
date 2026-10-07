@@ -5,7 +5,7 @@ from __future__ import annotations
 import getpass
 import webbrowser
 
-from . import APP_NAME, __version__, albert, installer, paths, texts
+from . import APP_NAME, __version__, albert, installer, modelguide, paths, texts
 from .installer import Plan
 
 
@@ -75,6 +75,8 @@ def main_install() -> int:
     key, models = choose_key(d)
 
     default = albert.default_model_id(models)
+    if ask_yes("\nAfficher le guide « Quel modèle choisir ? » ?", True):
+        print("\n" + modelguide.text_guide(models))
     print("\nModèles disponibles :")
     for i, m in enumerate(models, 1):
         print(f"  {i}. {m.id} — {m.label}" + ("  (par défaut)" if m.id == default else ""))

@@ -174,17 +174,40 @@ connexion…). Si une clé est déjà enregistrée sur l'ordinateur, l'applicati
   2,5 Go)** : réservez-le aux collègues qui en ont l'usage. Sous macOS, il a besoin des
   « outils de ligne de commande » d'Apple : si l'installateur ouvre la fenêtre d'Apple,
   cliquez sur **Installer**, attendez la fin, puis relancez la commande.
-- **Modèle par défaut** : la liste est lue en direct chez Albert ; gardez
-  **gemma-4-31b-it** (recommandé) si vous hésitez. Les autres modèles restent accessibles
-  ensuite depuis l'assistant.
+- **Modèle par défaut** : la liste est lue en direct chez Albert, elle ne montre donc que les
+  modèles réellement disponibles pour votre clé. Sous la liste, l'encadré **« Ce modèle »**
+  explique à quoi sert le modèle sélectionné, quand le choisir, et donne un exemple. Le
+  bouton **« Quel modèle choisir ? »** ouvre le guide complet :
 
-| Modèle | À utiliser pour |
-|---|---|
-| `gemma-4-31b-it` | usage général, lit aussi les images — **recommandé** |
-| `gpt-oss-120b` | raisonnement plus poussé (quota réduit : 10 requêtes/min) |
-| `deepseek-v4-flash-0731` | programmation uniquement (modèle extra-européen) |
-| `ministral-3-8b-instruct-2512` | petit et rapide (Pi seulement) |
-| `lightonocr-2-1b` | recopier le texte d'une image (Pi seulement) |
+![Guide « Quel modèle choisir ? »](docs/captures/05b-guide-modeles.png)
+
+#### Quel modèle choisir ? (situation au 7 octobre 2026)
+
+**En bref : commencez par `gemma-4-31b-it`.** Changez seulement si vous avez une raison, et
+souvenez-vous que le choix n'est pas définitif : tous les modèles sont déclarés, vous en
+changez à tout moment (`/models` dans OpenCode, `/model` dans Pi et Hermes).
+
+| Modèle | À quoi il sert | Choisissez-le si… | Exemple de demande | Limites |
+|---|---|---|---|---|
+| `gemma-4-31b-it` | généraliste, lit aussi les images | vous hésitez : il convient à presque tout | « Résume cours-chapitre3.md en 10 lignes, puis propose 5 questions de compréhension. » | 50 requêtes/min, 1 000/jour (compte d'expérimentation) |
+| `gpt-oss-120b` | raisonnement poussé, tâches en plusieurs étapes | la tâche est difficile et gemma s'y perd | « Vérifie pas à pas la correction de exercices-probabilites.md. » | **10 requêtes/min** : un assistant atteint vite la limite (erreur 429) ; lent ; pas d'images |
+| `deepseek-v4-flash` | programmation | vous écrivez ou corrigez du code, et seulement dans ce cas | « Ajoute une fonction de moyenne pondérée dans notes.py, avec des tests. » | origine extra-européenne, hébergé par Albert en France ; **phase d'essai terminée le 1er octobre 2026** : il peut être gardé, remplacé ou retiré |
+| `ministral-3-8b-instruct-2512` | petit et rapide, lit les images | tâche simple et répétitive, ou quota des autres atteint | « Corrige l'orthographe de appreciation-trimestre.md. » | moins fiable sur les tâches complexes ; Pi seulement |
+| `lightonocr-2-1b` | recopier le texte d'une image (OCR), formules en LaTeX | vous avez un scan ou une photo de document | `pi --model albert/lightonocr-2-1b @scan.png "Recopie le texte."` | images seulement (pas de PDF) ; Pi seulement |
+
+**Pourquoi ne pas toujours prendre le plus gros ?** Il est plus lent, ses quotas sont plus bas,
+et un assistant envoie souvent plusieurs requêtes pour une seule demande : vous seriez vite
+bloqué. Le modèle moyen (gemma) est le meilleur compromis.
+
+**Volontairement non proposés :** `mistral-small-3-2-24b-instruct-2506` (appels d'outils mal
+formés avec les assistants, retrait prévu le 1er décembre 2026, remplacé par gemma) et
+`qwen3-coder-30b-a3b-instruct` (retiré le 1er octobre 2026, remplacé par deepseek).
+
+> Les avertissements datés (phase d'essai terminée, retrait proche) sont recalculés par
+> l'application à la date du jour. Référence :
+> [documentation officielle des modèles](https://guides.ia.numerique.gouv.fr/albert-api/modeles/available-models).
+> Les modèles changent souvent : en cas de doute, c'est la liste affichée par l'installateur
+> (lue en direct chez Albert) qui fait foi.
 
 - **Extension VS Code** : à cocher si vous utilisez VS Code (la case est grisée sinon).
 - **Vérifier à la fin** : laissez coché ; l'application fera lire un fichier test à chaque assistant.

@@ -345,3 +345,37 @@ def test_hermes_configure_calls(monkeypatch, tmp_path):
     assert dict(calls)["mcp_servers.alliance"] == {"url": "https://x/mcp", "enabled": True}
     hermes.configure(models(), "gemma-4-31b-it", entries, tmp_path, set_default=True, log=print)
     assert store["model.provider"] == "albert" and store["skills.external_dirs"] == ["/perso", str(tmp_path)]
+
+
+# --- Guide des modèles (dates) ---------------------------------------------------------------
+
+def test_model_guide_dates():
+    import datetime as dt
+
+    from configurateur_albert import modelguide
+
+    deepseek = {"experimental_from": "2026-07-26", "experimental_until": "2026-10-01"}
+    assert modelguide.status(deepseek, dt.date(2026, 7, 1)) == ("ok", "")               # pas encore en essai
+    lvl, txt = modelguide.status(deepseek, dt.date(2026, 9, 15))
+    assert lvl == "attention" and "jusqu'au 1er octobre 2026" in txt
+    lvl, txt = modelguide.status(deepseek, dt.date(2026, 10, 7))
+    assert "s'est terminée le 1er octobre 2026" in txt
+    soon = {"retirement": "2026-12-01"}
+    assert "Sera retiré le 1er décembre 2026" in modelguide.status(soon, dt.date(2026, 10, 7))[1]
+    assert modelguide.status(soon, dt.date(2026, 6, 1)) == ("ok", "")                    # retrait encore loin
+    assert "depuis le 1er décembre 2026" in modelguide.status(soon, dt.date(2026, 12, 2))[1]
+
+
+def test_model_guide_covers_every_known_model():
+    import datetime as dt
+
+    from configurateur_albert import modelguide
+
+    raw = [{"id": mid, "type": "text-generation"} for mid in paths.catalog()["models"]] + \
+          [{"id": "inconnu-7b", "type": "text-generation"}]
+    for m in albert.usable_models(raw):
+        f = modelguide.fiche(m, dt.date(2026, 10, 7))
+        assert f.role and f.choose_if
+        assert f.known == (m.id != "inconnu-7b")
+    text = modelguide.text_guide(albert.usable_models(raw), dt.date(2026, 10, 7))
+    assert "qwen3-coder-30b-a3b-instruct" in text and "7 octobre 2026" in text
