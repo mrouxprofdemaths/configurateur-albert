@@ -441,7 +441,7 @@ class App(tk.Tk):
         v_key = tk.BooleanVar(value=True)
         v_tools = tk.BooleanVar(value=False)
         ttk.Checkbutton(frame, text="Supprimer aussi la clé Albert de ce poste", variable=v_key).pack(anchor="w", pady=2)
-        ttk.Checkbutton(frame, text="Désinstaller aussi OpenCode et Pi", variable=v_tools).pack(anchor="w", pady=2)
+        ttk.Checkbutton(frame, text="Désinstaller aussi OpenCode, Pi et Hermes", variable=v_tools).pack(anchor="w", pady=2)
         log = ScrolledText(frame, height=10, state="disabled")
         q2: queue.Queue = queue.Queue()
 

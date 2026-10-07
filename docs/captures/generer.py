@@ -50,6 +50,7 @@ STEPS_DONE = [
     ("windows", "ignoré", "Non concerné"),
     ("opencode", "ok", "Version 1.18.35 installée"),
     ("pi", "ok", "Version 1.0.4 installée"),
+    ("hermes", "ignoré", "Non demandé"),
     ("config", "ok", "Modèle par défaut : gemma-4-31b-it"),
     ("skills", "ok", "5 skill(s) dans ~/.agents/skills"),
     ("vscode", "ok", "Extension OpenCode installée"),

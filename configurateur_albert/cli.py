@@ -111,7 +111,7 @@ def main_uninstall() -> int:
     if not ask_yes("Retirer les réglages Albert, les skills et le chargement de la clé ?", False):
         return 0
     remove_key = ask_yes("Supprimer aussi la clé Albert de ce poste ?", True)
-    remove_tools = ask_yes("Désinstaller aussi OpenCode et Pi ?", False)
+    remove_tools = ask_yes("Désinstaller aussi OpenCode, Pi et Hermes ?", False)
     installer.uninstall(ConsoleReporter(), remove_key=remove_key, remove_tools=remove_tools)
     return 0
 

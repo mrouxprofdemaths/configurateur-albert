@@ -311,3 +311,37 @@ def test_catalog_is_consistent():
     for m in cat["mcp"]:
         assert m["type"] in ("remote", "local")
         assert ("url" in m) if m["type"] == "remote" else ("command" in m)
+
+
+# --- Hermes ------------------------------------------------------------------------------
+
+def test_hermes_get_parses_yaml_lists(monkeypatch):
+    from configurateur_albert import hermes
+
+    outputs = {"a": "[]", "b": "- /un\n- '/deux'\n", "c": "albert", "d": "url: x\nenabled: true"}
+    monkeypatch.setattr(hermes.system, "quiet",
+                        lambda cmd, timeout=30: system.Result(0, outputs[cmd[3]]))
+    assert hermes._get("a") == [] and hermes._get("b") == ["/un", "/deux"]
+    assert hermes._get("c") == "albert" and hermes._get("d").startswith("url:")
+
+
+def test_hermes_configure_calls(monkeypatch, tmp_path):
+    from configurateur_albert import hermes
+
+    calls, store = [], {"model.provider": "openrouter", "skills.external_dirs": ["/perso"]}
+    monkeypatch.setattr(hermes, "backup_config", lambda log: None)
+    monkeypatch.setattr(hermes, "_set", lambda k, v, log: (calls.append((k, v)), store.__setitem__(k, v)))
+    monkeypatch.setattr(hermes, "_get", lambda k: store.get(k))
+    entries = [("alliance", hermes.mcp_value({"type": "remote", "url": "https://x/mcp"}))]
+    hermes.configure(models(), "gemma-4-31b-it", entries, tmp_path, set_default=False, log=print)
+    keys = [k for k, _ in calls]
+    prov = dict(calls)["providers.albert"]
+    assert prov["key_env"] == "ALBERT_API_KEY" and "api_key" not in prov
+    assert "lightonocr-2-1b" not in prov["models"]                       # pas d'outils : pas pour un agent
+    assert "model.provider" not in keys                                   # set_default=False respecté
+    assert dict(calls)["model_overrides.custom.gemma-4-31b-it"]["supports_reasoning"] is False
+    assert "model_overrides.custom" not in keys                           # section partagée jamais écrasée
+    assert store["skills.external_dirs"] == ["/perso", str(tmp_path)]
+    assert dict(calls)["mcp_servers.alliance"] == {"url": "https://x/mcp", "enabled": True}
+    hermes.configure(models(), "gemma-4-31b-it", entries, tmp_path, set_default=True, log=print)
+    assert store["model.provider"] == "albert" and store["skills.external_dirs"] == ["/perso", str(tmp_path)]

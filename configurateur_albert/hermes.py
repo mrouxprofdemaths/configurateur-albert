@@ -97,6 +97,13 @@ def model_overrides(models: list[Model]) -> dict:
             for m in models}
 
 
+def _OUR_MODEL_IDS() -> list[str]:
+    """Modèles qu'on a pu déclarer : catalogue + ceux mémorisés à l'installation."""
+    from . import state
+
+    return sorted(set(paths.catalog()["models"]) | set(state.load().get("hermes_models", [])))
+
+
 def mcp_value(entry: dict, description: str = "") -> dict:
     if entry["type"] == "remote":
         return {"url": entry["url"], "enabled": True}
@@ -111,6 +118,7 @@ def _set(key: str, value, log: Log) -> None:
 
 
 def _get(key: str):
+    """Valeur simple, ou liste (« hermes config get » affiche du YAML : « [] » ou « - élément »)."""
     r = system.quiet(["hermes", "config", "get", key], timeout=60)
     if not r.ok:
         return None
@@ -118,7 +126,11 @@ def _get(key: str):
     try:
         return json.loads(out)
     except json.JSONDecodeError:
-        return out or None
+        pass
+    lines = [ln for ln in out.splitlines() if ln.strip()]
+    if lines and all(ln.lstrip().startswith("- ") for ln in lines):
+        return [ln.lstrip()[2:].strip().strip("\"'") for ln in lines]
+    return out or None
 
 
 def config_file() -> Path | None:
@@ -142,7 +154,13 @@ def configure(models: list[Model], default_model: str, mcp_entries: list[tuple[s
     backup_config(log)
     entry = provider_entry(models, default_model)
     _set(f"providers.{PROVIDER}", entry, log)
-    _set(f"model_overrides.custom:{PROVIDER}", model_overrides(models), log)
+    # Hermes cherche ces réglages sous le nom exact du fournisseur ; selon les chemins de code,
+    # un fournisseur nommé apparaît comme « albert », « custom:albert » ou « custom ».
+    overrides = model_overrides(models)
+    for key in (PROVIDER, f"custom:{PROVIDER}"):        # sections propres à Albert
+        _set(f"model_overrides.{key}", overrides, log)
+    for mid, value in overrides.items():               # section partagée : modèle par modèle
+        _set(f"model_overrides.custom.{mid}", value, log)
     current = _get("model.provider")
     if set_default or not current or current in ("auto", PROVIDER):
         _set("model.provider", PROVIDER, log)
@@ -161,9 +179,13 @@ def remove(mcp_ids: list[str], skills_dir: Path, log: Log) -> None:
     if not find():
         return
     backup_config(log)
-    for key in (f"providers.{PROVIDER}", f"model_overrides.custom:{PROVIDER}",
+    for key in (f"providers.{PROVIDER}", f"model_overrides.{PROVIDER}", f"model_overrides.custom:{PROVIDER}",
                 *(f"mcp_servers.{m}" for m in mcp_ids)):
         system.run(["hermes", "config", "unset", key], log, timeout=60)
+    # Dans la section partagée « custom », on ne retire que nos modèles.
+    for mid in _OUR_MODEL_IDS():
+        if _get(f"model_overrides.custom.{mid}") is not None:
+            system.run(["hermes", "config", "unset", f"model_overrides.custom.{mid}"], log, timeout=60)
     if _get("model.provider") == PROVIDER:
         system.run(["hermes", "config", "unset", "model.provider"], log, timeout=60)
         system.run(["hermes", "config", "unset", "model.default"], log, timeout=60)

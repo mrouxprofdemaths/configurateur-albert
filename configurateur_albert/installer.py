@@ -314,7 +314,7 @@ class _Run:
                 for line in hermes.configure(self.plan.models, self.plan.default_model, entries,
                                              paths.skills_dir(), self.plan.set_default, self.log):
                     self.log(line)
-                state.update(hermes=True)
+                state.update(hermes=True, hermes_models=[m.id for m in self.plan.models])
             except (OSError, hermes.HermesError) as e:
                 errors.append(f"Hermes : {e}")
         state.update(mcp=[i["id"] for i in mcp_items])

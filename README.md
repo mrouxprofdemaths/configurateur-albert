@@ -3,8 +3,8 @@
 **Installer en quelques minutes un assistant d'IA qui travaille sur vos fichiers, branché sur
 Albert API, l'IA souveraine de l'État, sans connaissance technique.**
 
-L'application installe et règle **OpenCode** et/ou **Pi**, deux assistants qui lisent, écrivent
-et transforment les fichiers d'un dossier de votre ordinateur. Elle ajoute aussi des **skills**
+L'application installe et règle **OpenCode**, **Pi** et/ou **Hermes**, des assistants qui lisent,
+écrivent et transforment les fichiers d'un dossier de votre ordinateur. Elle ajoute aussi des **skills**
 (savoir-faire, comme anonymiser un texte ou transcrire un enregistrement) et des **connecteurs**
 (accès aux données publiques de data.gouv.fr…).
 
@@ -22,7 +22,7 @@ Public visé : enseignant·es et agents publics, sans compétence technique (for
 3. [Ouvrir un terminal](#3-ouvrir-un-terminal)
 4. [Lancer l'installateur](#4-lancer-linstallateur)
 5. [Suivre l'assistant, écran par écran](#5-suivre-lassistant-écran-par-écran)
-6. [Utiliser OpenCode et Pi](#6-utiliser-opencode-et-pi)
+6. [Utiliser OpenCode, Pi et Hermes](#6-utiliser-opencode-pi-et-hermes)
 7. [Relancer, mettre à jour, désinstaller](#7-relancer-mettre-à-jour-désinstaller)
 8. [En cas de problème](#8-en-cas-de-problème)
 9. [Méthode de secours : l'exécutable à télécharger](#9-méthode-de-secours--lexécutable-à-télécharger)
@@ -53,7 +53,7 @@ L'installateur s'en charge.
 
 ## 2. Créer votre clé Albert
 
-La clé est un mot de passe qui permet à OpenCode et Pi d'utiliser Albert en votre nom.
+La clé est un mot de passe qui permet à vos assistants (OpenCode, Pi, Hermes) d'utiliser Albert en votre nom.
 
 1. Ouvrez la page des clés : **https://albert.playground.etalab.gouv.fr/keys**
    (l'installateur propose aussi un bouton qui l'ouvre pour vous).
@@ -140,7 +140,7 @@ Le bouton **Désinstaller** (en bas) sert plus tard à tout retirer.
 ![Diagnostic de l'ordinateur](docs/captures/02-diagnostic.png)
 
 L'application examine votre ordinateur : système, Node.js (moteur dont OpenCode et Pi ont
-besoin), OpenCode et Pi déjà présents ou non, clé déjà enregistrée…
+besoin), OpenCode, Pi et Hermes déjà présents ou non, clé déjà enregistrée…
 
 - **Aucune ligne n'est une erreur** : un « **!** » orange signale seulement quelque chose
   que l'application va installer ou régler pour vous.
@@ -166,8 +166,14 @@ connexion…). Si une clé est déjà enregistrée sur l'ordinateur, l'applicati
 
 ![Choix des assistants et du modèle](docs/captures/05-assistants-modele.png)
 
-- **OpenCode** : le plus complet, avec une extension pour VS Code. **Pi** : plus léger, sait
+- **OpenCode** : le plus guidé, avec une extension pour VS Code. **Pi** : plus léger, sait
   aussi recopier le texte d'une image (OCR). Vous pouvez installer les deux.
+- **Hermes** (décoché par défaut) : agent très complet de Nous Research — mémoire d'une
+  session à l'autre, création de ses propres skills, tâches programmées, messageries
+  (Telegram, Discord…). Son installation est **longue (5 à 15 minutes) et volumineuse (environ
+  2,5 Go)** : réservez-le aux collègues qui en ont l'usage. Sous macOS, il a besoin des
+  « outils de ligne de commande » d'Apple : si l'installateur ouvre la fenêtre d'Apple,
+  cliquez sur **Installer**, attendez la fin, puis relancez la commande.
 - **Modèle par défaut** : la liste est lue en direct chez Albert ; gardez
   **gemma-4-31b-it** (recommandé) si vous hésitez. Les autres modèles restent accessibles
   ensuite depuis l'assistant.
@@ -267,7 +273,7 @@ Cliquez sur **Fermer** : le terminal se libère, vous pouvez le fermer.
 
 ---
 
-## 6. Utiliser OpenCode et Pi
+## 6. Utiliser OpenCode, Pi et Hermes
 
 > **Important** : **fermez tous les terminaux** (et VS Code) puis **rouvrez-en un**.
 > Les terminaux ouverts avant l'installation ne connaissent pas encore votre clé.
@@ -293,6 +299,11 @@ opencode        # ou : pi
 | Requête ponctuelle sans interface | `opencode run "…"` | `pi -p "…"` |
 | Reprendre la dernière session | — | `pi --continue` |
 | Quitter | `Ctrl+C` | `Ctrl+C` deux fois |
+
+**Hermes** se lance avec `hermes` (même principe : placez-vous d'abord dans votre dossier).
+`/model` change de modèle, `hermes chat --oneshot -q "…"` pose une question ponctuelle,
+`hermes doctor` diagnostique un problème. Il utilise les mêmes skills et connecteurs que
+les deux autres assistants.
 
 **OCR avec Pi** (recopier le texte d'une image ; images seulement, pas de PDF) :
 
@@ -322,7 +333,7 @@ Rien n'est installé en double : l'application reconnaît ce qu'elle a déjà fa
 
 Sont retirés : les réglages Albert d'OpenCode et de Pi, les skills installés par
 l'application, le chargement automatique de la clé, la copie personnelle de Node.js et,
-si vous le cochez, la clé elle-même et les programmes OpenCode et Pi. **Vos autres réglages
+si vous le cochez, la clé elle-même et les programmes OpenCode, Pi et Hermes. **Vos autres réglages
 ne sont pas touchés.** Pensez à supprimer aussi la clé dans le Playground si vous ne
 l'utilisez plus.
 
@@ -358,6 +369,8 @@ $env:CONFIGURATEUR_TEXTE = "1"; irm https://raw.githubusercontent.com/mrouxprofd
 |---|---|
 | ✖ sur « Node.js » | Installez Node.js (version **LTS**) depuis https://nodejs.org, puis relancez la commande. |
 | ! sur « Réglages Windows » (Git for Windows absent) | Installez Git depuis https://git-scm.com/download/win (options par défaut), puis relancez. |
+| ! sur « Installer Hermes » (macOS) : « outils de ligne de commande » | Cliquez sur **Installer** dans la fenêtre d'Apple, attendez la fin (5 à 10 min), puis relancez la commande. |
+| ✖ sur « Installer Hermes » | Souvent le réseau (téléchargements volumineux) ou l'espace disque (2,5 Go) : réessayez sur une autre connexion ; `hermes doctor` donne le détail. |
 | ✖ sur « Installer OpenCode » : « une autre version reste prioritaire » | Une version 2 d'OpenCode installée autrement (Homebrew…) masque la version 1 : désinstallez-la puis relancez. |
 | ! sur « Vérifications » | Lisez le détail : souvent un quota Albert atteint (429) ou Albert saturé (503). Réessayez plus tard ; le reste de l'installation est en place. |
 
@@ -423,6 +436,7 @@ logiciels). Pas de télémétrie, pas de compte à créer en dehors du Playgroun
 | Node.js (si absent ou trop ancien) | `~/.local/share/configurateur-albert/node` (Windows : `%LOCALAPPDATA%\configurateur-albert\node`) |
 | OpenCode | `~/.config/opencode/opencode.json` (section `albert` seulement) |
 | Pi | `~/.pi/agent/models.json`, `settings.json`, `mcp.json` |
+| Hermes | `~/.hermes/config.yaml` (Windows : `%LOCALAPPDATA%\hermes\config.yaml`), modifié uniquement par la commande `hermes config set` : fournisseur `albert`, connecteurs, et `~/.agents/skills` ajouté aux dossiers de skills |
 | Skills | `~/.agents/skills/` (lu par OpenCode et par Pi) |
 | Outil uv et son Python (méthode du terminal, ou connecteur MarkItDown) | `~/.local/share/configurateur-albert/uv` et `~/.cache/uv` (Windows : `%LOCALAPPDATA%\configurateur-albert\uv` et `%LOCALAPPDATA%\uv`) ; non retirés par la désinstallation, supprimables à la main |
 
@@ -444,8 +458,10 @@ est laissé tel quel.
 terminal et accéder à GitHub ; aucun droit administrateur n'est requis. Un poste très verrouillé
 peut bloquer la commande : il faut alors passer par le support informatique.
 
-**OpenCode ou Pi ?** OpenCode pour commencer (plus guidé, extension VS Code). Pi si vous voulez
-l'OCR ou un outil plus léger. Rien n'empêche d'installer les deux.
+**OpenCode, Pi ou Hermes ?** OpenCode pour commencer (plus guidé, extension VS Code). Pi si vous
+voulez l'OCR ou un outil plus léger. Hermes pour les collègues qui veulent un agent qui se
+souvient d'eux, crée ses propres skills et peut travailler sur des tâches programmées — au prix
+d'une installation bien plus lourde. Rien n'empêche d'en installer plusieurs.
 
 **Ma clé expire. Que faire ?** Créez-en une nouvelle dans le Playground et relancez la commande
 de l'[étape 4](#4-lancer-linstallateur) : choisissez « Utiliser une nouvelle clé ».
