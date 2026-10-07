@@ -72,6 +72,7 @@ class Diagnostic:
     vscode: bool
     key: str | None
     hermes: str | None = None
+    albert_in: list[str] = field(default_factory=list)   # assistants déjà branchés sur Albert
 
     @property
     def opencode_major(self) -> int | None:
@@ -94,7 +95,15 @@ def diagnose() -> Diagnostic:
         vscode=system.which("code") is not None,
         key=keystore.existing_key(),
         hermes=hermes.version(),
+        albert_in=albert_configured(),
     )
+
+
+def albert_configured() -> list[str]:
+    found = configs.albert_configured()
+    if hermes.find() and hermes.provider_configured():
+        found.append("Hermes")
+    return found
 
 
 TOOLS = {
@@ -125,6 +134,14 @@ def catalog_items(kind: str, ids: list[str]) -> list[dict]:
     return [i for i in paths.catalog()[kind] if i["id"] in ids]
 
 
+def _test_verdict(tool: str, ok: bool, r: system.Result) -> str:
+    if ok:
+        return f"{tool} : OK"
+    if r.code == 124:
+        return f"{tool} : pas de réponse à temps (Albert lent ou saturé ? réessayez plus tard)"
+    return f"{tool} : échec"
+
+
 # --- Étapes -------------------------------------------------------------------
 
 class _Run:
@@ -153,6 +170,14 @@ class _Run:
             for line in keystore.install_rc_block(extra):
                 self.log(line)
             state.update(key_stored=True, rc_block=not IS_WINDOWS, windows_env=IS_WINDOWS)
+            # La clé a été testée auprès d'Albert à l'écran « Votre clé » (liste des modèles).
+            self.log(f"Clé vérifiée auprès d'Albert ({paths.catalog()['albert']['base_url']}) : "
+                     f"{len(self.plan.models)} modèle(s) utilisable(s) — "
+                     + ", ".join(m.id for m in self.plan.models))
+            already = albert_configured()
+            if already:
+                self.log("Albert est déjà configuré dans : " + ", ".join(already)
+                         + ". Les réglages Albert seront mis à jour (sauvegarde .bak avant chaque modification).")
             self.set("cle", OK, f"Clé {albert.mask(self.plan.key)} rangée")
         except (OSError, ConfigError) as e:
             self.set("cle", ERROR, str(e))
@@ -445,23 +470,23 @@ class _Run:
                     model = oc_ids[0]
                 self.log(f"Test d'OpenCode avec {model} (lecture d'un fichier)…")
                 r = system.run(["opencode", "run", "-m", f"albert/{model}", prompt],
-                               self.log, env=env, cwd=tmp, timeout=300)
+                               self.log, env=env, cwd=tmp, timeout=300, heartbeat=30)
                 ok = TEST_CODE in r.output
-                report.append("OpenCode : OK" if ok else "OpenCode : échec")
+                report.append(_test_verdict("OpenCode", ok, r))
                 bad |= not ok
             if self.plan.pi and system.which("pi"):
                 self.log(f"Test de Pi avec {self.plan.default_model} (lecture d'un fichier)…")
                 r = system.run(["pi", "-p", "--model", f"albert/{self.plan.default_model}", prompt],
-                               self.log, env=env, cwd=tmp, timeout=300)
+                               self.log, env=env, cwd=tmp, timeout=300, heartbeat=30)
                 ok = TEST_CODE in r.output
-                report.append("Pi : OK" if ok else "Pi : échec")
+                report.append(_test_verdict("Pi", ok, r))
                 bad |= not ok
             if self.plan.hermes and hermes.find():
                 self.log(f"Test de Hermes avec {self.plan.default_model} (lecture d'un fichier)…")
                 r = system.run(hermes.oneshot_command(prompt, self.plan.default_model),
-                               self.log, env=env, cwd=tmp, timeout=420)
+                               self.log, env=env, cwd=tmp, timeout=420, heartbeat=30)
                 ok = TEST_CODE in r.output
-                report.append("Hermes : OK" if ok else "Hermes : échec")
+                report.append(_test_verdict("Hermes", ok, r))
                 bad |= not ok
         finally:
             shutil.rmtree(tmp, ignore_errors=True)

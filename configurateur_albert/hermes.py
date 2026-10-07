@@ -133,6 +133,11 @@ def _get(key: str):
     return out or None
 
 
+def provider_configured() -> bool:
+    """Le fournisseur Albert est-il déjà déclaré dans Hermes ?"""
+    return _get(f"providers.{PROVIDER}") not in (None, "", "null", "None")
+
+
 def config_file() -> Path | None:
     r = system.quiet(["hermes", "config", "path"], timeout=60)
     lines = [ln.strip() for ln in r.output.splitlines() if ln.strip()]

@@ -5,7 +5,10 @@ from __future__ import annotations
 import os
 import re
 import shutil
+import signal
 import subprocess
+import threading
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from collections.abc import Callable
@@ -119,15 +122,36 @@ def child_env(extra: dict | None = None) -> dict:
     return env
 
 
+def _kill_tree(proc: subprocess.Popen) -> None:
+    """Arrête la commande et tout ce qu'elle a lancé (serveurs MCP…), qui pourraient
+    sinon garder la sortie ouverte et bloquer la lecture."""
+    try:
+        if IS_WINDOWS:
+            subprocess.run(["taskkill", "/T", "/F", "/PID", str(proc.pid)], capture_output=True,
+                           timeout=30, creationflags=0x08000000)
+        else:
+            os.killpg(proc.pid, signal.SIGKILL)
+    except (OSError, subprocess.SubprocessError):
+        pass
+    try:
+        proc.kill()
+    except OSError:
+        pass
+
+
 def run(cmd: list[str], log: Log | None = None, *, env: dict | None = None,
-        cwd: str | Path | None = None, timeout: float = 900) -> Result:
+        cwd: str | Path | None = None, timeout: float = 900, heartbeat: float = 0) -> Result:
     """Lance une commande en diffusant sa sortie (masquée) dans le journal.
-    Les secrets passent par l'environnement, jamais par la ligne de commande."""
+    Les secrets passent par l'environnement, jamais par la ligne de commande.
+    Le délai est garanti même si la commande se tait (minuteur indépendant de la lecture) ;
+    heartbeat > 0 : signale dans le journal une commande silencieuse depuis ce délai."""
     exe = which(cmd[0]) or cmd[0]
     argv = [exe, *cmd[1:]]
     kwargs: dict = {}
     if IS_WINDOWS:
         kwargs["creationflags"] = 0x08000000  # CREATE_NO_WINDOW : pas de console qui clignote
+    else:
+        kwargs["start_new_session"] = True     # groupe de processus propre : arrêt complet possible
     if log:
         log("$ " + " ".join(cmd))
     try:
@@ -139,18 +163,44 @@ def run(cmd: list[str], log: Log | None = None, *, env: dict | None = None,
         if log:
             log(msg)
         return Result(127, msg)
+    start = last = time.monotonic()
+    expired = threading.Event()
+    finished = threading.Event()
+
+    def watch() -> None:
+        nonlocal last
+        while not finished.wait(1):
+            now = time.monotonic()
+            if now - start > timeout:
+                expired.set()
+                _kill_tree(proc)
+                return
+            if heartbeat and log and now - last > heartbeat:
+                log(f"  … toujours en cours ({int(now - start)} s ; arrêt automatique à {int(timeout)} s)")
+                last = now
+
+    threading.Thread(target=watch, daemon=True).start()
     lines: list[str] = []
     try:
         assert proc.stdout is not None
         for line in proc.stdout:
+            last = time.monotonic()
             line = redact(_strip_ansi(line.rstrip("\n")))
             lines.append(line)
             if log and line.strip():
                 log("  " + line)
-        proc.wait(timeout=timeout)
+        proc.wait(timeout=30)
     except subprocess.TimeoutExpired:
-        proc.kill()
-        lines.append("(délai dépassé, commande interrompue)")
+        # Sortie fermée mais processus encore là : on l'arrête.
+        _kill_tree(proc)
+        proc.wait()
+    finally:
+        finished.set()
+    if expired.is_set():
+        msg = f"(délai de {int(timeout)} s dépassé : commande interrompue)"
+        lines.append(msg)
+        if log:
+            log("  " + msg)
         return Result(124, "\n".join(lines))
     return Result(proc.returncode, "\n".join(lines))
 
