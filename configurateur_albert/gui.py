@@ -58,6 +58,7 @@ class App(tk.Tk):
         cat = paths.catalog()
         self.var_opencode = tk.BooleanVar(value=True)
         self.var_pi = tk.BooleanVar(value=True)
+        self.var_hermes = tk.BooleanVar(value=False)
         self.var_vscode = tk.BooleanVar(value=False)
         self.var_tests = tk.BooleanVar(value=True)
         self.var_model = tk.StringVar()
@@ -184,6 +185,7 @@ class App(tk.Tk):
             oc_note += " (version 2 : la version 1, testée, sera installée)"
         rows.append(("OpenCode", oc_note, "ok" if d.opencode_major == 1 else "attention"))
         rows.append(("Pi", d.pi or "absent : sera installé", "ok" if d.pi else "attention"))
+        rows.append(("Hermes", d.hermes or "absent (facultatif)", "ok" if d.hermes else ""))
         rows.append(("Clé Albert", f"déjà enregistrée ({albert.mask(d.key)})" if d.key else "pas encore enregistrée",
                      "ok" if d.key else "attention"))
         rows.append(("VS Code", "présent" if d.vscode else "absent (facultatif)", "ok" if d.vscode else ""))
@@ -267,6 +269,9 @@ class App(tk.Tk):
         ttk.Checkbutton(self.body, text="Pi — plus léger, sait faire de l'OCR d'images"
                         + (f" (installé : {d.pi})" if d and d.pi else ""),
                         variable=self.var_pi).pack(anchor="w", pady=2)
+        ttk.Checkbutton(self.body, text="Hermes — agent très complet (mémoire, automatisations, messageries) ; "
+                        "installation longue : 5 à 15 min" + (f" (installé : {d.hermes})" if d and d.hermes else ""),
+                        variable=self.var_hermes).pack(anchor="w", pady=2)
         ttk.Label(self.body, text="\nModèle utilisé par défaut (modifiable ensuite dans l'assistant) :").pack(anchor="w")
         labels = [f"{m.id} — {m.label}" for m in self.models]
         combo = ttk.Combobox(self.body, values=labels, state="readonly", width=90)
@@ -290,7 +295,7 @@ class App(tk.Tk):
                         variable=self.var_tests).pack(anchor="w", pady=2)
 
     def validate_3(self) -> bool:
-        if not (self.var_opencode.get() or self.var_pi.get()):
+        if not (self.var_opencode.get() or self.var_pi.get() or self.var_hermes.get()):
             messagebox.showinfo(APP_NAME, "Choisissez au moins un assistant.")
             return False
         return True
@@ -348,7 +353,7 @@ class App(tk.Tk):
         return Plan(
             key=self.key or "", models=self.models,
             default_model=self.var_model.get() or albert.default_model_id(self.models) or self.models[0].id,
-            opencode=self.var_opencode.get(), pi=self.var_pi.get(),
+            opencode=self.var_opencode.get(), pi=self.var_pi.get(), hermes=self.var_hermes.get(),
             skills=[k for k, v in self.skill_vars.items() if v.get()],
             mcp=[k for k, v in self.mcp_vars.items() if v.get()],
             vscode=self.var_vscode.get(), run_tests=self.var_tests.get(),
@@ -359,7 +364,7 @@ class App(tk.Tk):
         p = self.build_plan()
         cat = paths.catalog()
         names = lambda kind, ids: ", ".join(i["name"] for i in cat[kind] if i["id"] in ids) or "aucun"
-        tools = " et ".join(t for t, on in (("OpenCode", p.opencode), ("Pi", p.pi)) if on)
+        tools = ", ".join(t for t, on in (("OpenCode", p.opencode), ("Pi", p.pi), ("Hermes", p.hermes)) if on)
         lines = [
             f"• Assistant(s) : {tools}",
             f"• Modèle par défaut : {p.default_model}",

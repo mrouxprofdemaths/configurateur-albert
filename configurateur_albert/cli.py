@@ -71,7 +71,7 @@ def main_install() -> int:
     print("Diagnostic du poste…")
     d = installer.diagnose()
     print(f"  Système : {d.os}\n  Node.js : {d.node or 'absent'}\n"
-          f"  OpenCode : {d.opencode or 'absent'}\n  Pi : {d.pi or 'absent'}")
+          f"  OpenCode : {d.opencode or 'absent'}\n  Pi : {d.pi or 'absent'}\n  Hermes : {d.hermes or 'absent'}")
     key, models = choose_key(d)
 
     default = albert.default_model_id(models)
@@ -84,7 +84,8 @@ def main_install() -> int:
 
     want_oc = ask_yes("\nInstaller et configurer OpenCode ?")
     want_pi = ask_yes("Installer et configurer Pi ?")
-    if not (want_oc or want_pi):
+    want_hermes = ask_yes("Installer et configurer Hermes (installation longue : 5 à 15 min) ?", False)
+    if not (want_oc or want_pi or want_hermes):
         print("Rien à faire.")
         return 0
     cat = paths.catalog()
@@ -94,7 +95,7 @@ def main_install() -> int:
     vscode = want_oc and d.vscode and ask_yes("Installer l'extension OpenCode pour VS Code ?", False)
 
     plan = Plan(key=key, models=models, default_model=default or models[0].id,
-                opencode=want_oc, pi=want_pi, skills=chosen_skills, mcp=chosen_mcp, vscode=vscode)
+                opencode=want_oc, pi=want_pi, hermes=want_hermes, skills=chosen_skills, mcp=chosen_mcp, vscode=vscode)
     print()
     results = installer.run_plan(plan, ConsoleReporter())
     print("\n" + texts.USAGE)
