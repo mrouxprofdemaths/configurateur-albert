@@ -84,9 +84,14 @@ def main_install() -> int:
     if answer.isdigit() and 1 <= int(answer) <= len(models):
         default = models[int(answer) - 1].id
 
-    want_oc = ask_yes("\nInstaller et configurer OpenCode ?")
-    want_pi = ask_yes("Installer et configurer Pi ?")
-    want_hermes = ask_yes("Installer et configurer Hermes (installation longue : 5 à 15 min) ?", False)
+    def want(tool: str, default: bool = True) -> bool:
+        title, action = installer.tool_choice(tool, d)
+        return ask_yes(f"{title.split(' — ')[0]} : {action}. D'accord ?", default)
+
+    print()
+    want_oc = want("opencode")
+    want_pi = want("pi")
+    want_hermes = want("hermes", bool(d.hermes))
     if not (want_oc or want_pi or want_hermes):
         print("Rien à faire.")
         return 0

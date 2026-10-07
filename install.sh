@@ -1,7 +1,7 @@
 #!/bin/sh
 # Configurateur Albert — lancement depuis le terminal (macOS / Linux).
 #
-#   curl -LsSf https://raw.githubusercontent.com/mrouxprofdemaths/configurateur-albert/v0.2.0/install.sh | sh
+#   curl -LsSf https://raw.githubusercontent.com/mrouxprofdemaths/configurateur-albert/v0.2.1/install.sh | sh
 #
 # Mode texte (sans fenêtre) :
 #   curl -LsSf …/install.sh | sh -s -- --texte
@@ -12,9 +12,9 @@
 #   2. lance le Configurateur Albert (version figée ci-dessous) avec un Python fourni par uv.
 set -eu
 
-REF="${CONFIGURATEUR_REF:-v0.2.0}"
+REF="${CONFIGURATEUR_REF:-v0.2.1}"
 REPO="mrouxprofdemaths/configurateur-albert"
-# Archive GitHub de la version : fonctionne pour une étiquette (v0.2.0) comme pour une branche (main).
+# Archive GitHub de la version : fonctionne pour une étiquette (v0.2.1) comme pour une branche (main).
 ARCHIVE="https://github.com/$REPO/archive/$REF.tar.gz"
 # CONFIGURATEUR_SOURCE permet de tester une copie locale (utilisé par la CI).
 SOURCE="${CONFIGURATEUR_SOURCE:-configurateur-albert @ $ARCHIVE}"

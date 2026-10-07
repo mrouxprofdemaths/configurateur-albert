@@ -379,3 +379,20 @@ def test_model_guide_covers_every_known_model():
         assert f.known == (m.id != "inconnu-7b")
     text = modelguide.text_guide(albert.usable_models(raw), dt.date(2026, 10, 7))
     assert "qwen3-coder-30b-a3b-instruct" in text and "7 octobre 2026" in text
+
+
+def test_outil_deja_installe_seulement_configure():
+    from configurateur_albert import installer
+
+    def diag(**kw):
+        base = dict(os="Linux", node="22.20.0", node_ok_for_pi=True, npm_writable=True, git_bash=None,
+                    opencode=None, pi=None, vscode=False, key=None, hermes=None)
+        return installer.Diagnostic(**{**base, **kw})
+
+    assert "seulement configuré" in installer.tool_choice("opencode", diag(opencode="1.18.35"))[1]
+    assert "version 1 (testée) sera installée" in installer.tool_choice("opencode", diag(opencode="2.0.1"))[1]
+    assert "seulement configuré" in installer.tool_choice("pi", diag(pi="1.0.4"))[1]
+    assert "mise à jour" in installer.tool_choice("pi", diag(pi="0.9.0"))[1]
+    assert "seulement configuré" in installer.tool_choice("hermes", diag(hermes="0.12.0"))[1]
+    assert "5 à 15 min" in installer.tool_choice("hermes", diag())[1]
+    assert installer.tool_choice("pi", None)[1] == "sera installé puis configuré"

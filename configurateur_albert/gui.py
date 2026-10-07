@@ -171,6 +171,9 @@ class App(tk.Tk):
             self.btn_next.state(["!disabled"])
             return
         self.diag = d
+        # Un assistant déjà présent est coché d'office : il sera seulement configuré.
+        if d.hermes:
+            self.var_hermes.set(True)
         rows = [("Système", d.os, "ok")]
         if d.node:
             rows.append(("Node.js", d.node + ("" if d.node_ok_for_pi else " (trop ancien pour Pi : une copie récente sera installée)"),
@@ -262,16 +265,12 @@ class App(tk.Tk):
     def page_tools(self) -> None:
         self.header.configure(text="Assistants et modèle")
         d = self.diag
-        ttk.Label(self.body, text="Quels assistants voulez-vous ?").pack(anchor="w")
-        ttk.Checkbutton(self.body, text="OpenCode — interface en terminal, extension VS Code"
-                        + (f" (installé : {d.opencode})" if d and d.opencode else ""),
-                        variable=self.var_opencode).pack(anchor="w", pady=2)
-        ttk.Checkbutton(self.body, text="Pi — plus léger, sait faire de l'OCR d'images"
-                        + (f" (installé : {d.pi})" if d and d.pi else ""),
-                        variable=self.var_pi).pack(anchor="w", pady=2)
-        ttk.Checkbutton(self.body, text="Hermes — agent très complet (mémoire, automatisations, messageries) ; "
-                        "installation longue : 5 à 15 min" + (f" (installé : {d.hermes})" if d and d.hermes else ""),
-                        variable=self.var_hermes).pack(anchor="w", pady=2)
+        ttk.Label(self.body, text="Quels assistants voulez-vous utiliser avec Albert ?").pack(anchor="w")
+        for var, (title, action) in ((self.var_opencode, installer.tool_choice("opencode", d)),
+                                     (self.var_pi, installer.tool_choice("pi", d)),
+                                     (self.var_hermes, installer.tool_choice("hermes", d))):
+            ttk.Checkbutton(self.body, text=title, variable=var).pack(anchor="w", pady=(2, 0))
+            ttk.Label(self.body, text=action, foreground="#555").pack(anchor="w", padx=(24, 0))
         cb = ttk.Checkbutton(self.body, text="Installer l'extension OpenCode pour VS Code",
                              variable=self.var_vscode)
         cb.pack(anchor="w", pady=(8, 0))

@@ -88,13 +88,13 @@ Copiez la ligne correspondant à votre système, collez-la dans le terminal, pui
 **macOS et Linux :**
 
 ```bash
-curl -LsSf https://raw.githubusercontent.com/mrouxprofdemaths/configurateur-albert/v0.2.0/install.sh | sh
+curl -LsSf https://raw.githubusercontent.com/mrouxprofdemaths/configurateur-albert/v0.2.1/install.sh | sh
 ```
 
 **Windows :**
 
 ```powershell
-irm https://raw.githubusercontent.com/mrouxprofdemaths/configurateur-albert/v0.2.0/install.ps1 | iex
+irm https://raw.githubusercontent.com/mrouxprofdemaths/configurateur-albert/v0.2.1/install.ps1 | iex
 ```
 
 > Pour coller dans le terminal : `Cmd ⌘ + V` (macOS), `Ctrl + V` ou clic droit (Windows),
@@ -103,7 +103,7 @@ irm https://raw.githubusercontent.com/mrouxprofdemaths/configurateur-albert/v0.2
 Le terminal affiche alors :
 
 ```text
-=== Configurateur Albert (v0.2.0) ===
+=== Configurateur Albert (v0.2.1) ===
 
 Préparation (une seule fois) : téléchargement de l'outil uv…
 La fenêtre de l'installateur va s'ouvrir (premier lancement : 1 à 2 minutes).
@@ -168,7 +168,10 @@ connexion…). Si une clé est déjà enregistrée sur l'ordinateur, l'applicati
 
 - **OpenCode** : le plus guidé, avec une extension pour VS Code. **Pi** : plus léger, sait
   aussi recopier le texte d'une image (OCR). Vous pouvez installer les deux.
-- **Hermes** (décoché par défaut) : agent très complet de Nous Research — mémoire d'une
+- Sous chaque assistant, l'écran indique ce qui sera fait : **« déjà installé : sera
+  seulement configuré »** (rien n'est réinstallé, seule la connexion à Albert est ajoutée)
+  ou **« sera installé puis configuré »**. Un assistant déjà présent est coché d'office.
+- **Hermes** (décoché par défaut, sauf s'il est déjà installé) : agent très complet de Nous Research — mémoire d'une
   session à l'autre, création de ses propres skills, tâches programmées, messageries
   (Telegram, Discord…). Son installation est **longue (5 à 15 minutes) et volumineuse (environ
   2,5 Go)** : réservez-le aux collègues qui en ont l'usage. Sous macOS, il a besoin des
@@ -363,11 +366,11 @@ l'utilisez plus.
 **Mode texte** (sans fenêtre, pour les habitués du terminal) :
 
 ```bash
-curl -LsSf https://raw.githubusercontent.com/mrouxprofdemaths/configurateur-albert/v0.2.0/install.sh | sh -s -- --texte
+curl -LsSf https://raw.githubusercontent.com/mrouxprofdemaths/configurateur-albert/v0.2.1/install.sh | sh -s -- --texte
 ```
 
 ```powershell
-$env:CONFIGURATEUR_TEXTE = "1"; irm https://raw.githubusercontent.com/mrouxprofdemaths/configurateur-albert/v0.2.0/install.ps1 | iex
+$env:CONFIGURATEUR_TEXTE = "1"; irm https://raw.githubusercontent.com/mrouxprofdemaths/configurateur-albert/v0.2.1/install.ps1 | iex
 ```
 
 ---
@@ -378,7 +381,7 @@ $env:CONFIGURATEUR_TEXTE = "1"; irm https://raw.githubusercontent.com/mrouxprofd
 
 | Message ou symptôme | Que faire |
 |---|---|
-| « la version v0.2.0 … est introuvable sur GitHub » | La version n'est pas encore publiée : prévenez la personne qui vous a transmis la commande. En attendant, la commande affichée juste en dessous lance la version en cours de développement. |
+| « la version v0.2.1 … est introuvable sur GitHub » | La version n'est pas encore publiée : prévenez la personne qui vous a transmis la commande. En attendant, la commande affichée juste en dessous lance la version en cours de développement. |
 | `curl: command not found` (Linux) | Installez curl (`sudo apt install curl`) ou demandez au support. |
 | « irm n'est pas reconnu… » (Windows) | Vous êtes dans l'invite de commandes (`cmd`) : ouvrez **PowerShell** ou **Terminal** (voir [étape 3](#3-ouvrir-un-terminal)). |
 | Le terminal reste plusieurs minutes sans rien afficher | Premier lancement : téléchargements en cours, patientez jusqu'à 5 minutes sur une connexion lente. |
@@ -392,9 +395,9 @@ $env:CONFIGURATEUR_TEXTE = "1"; irm https://raw.githubusercontent.com/mrouxprofd
 |---|---|
 | ✖ sur « Node.js » | Installez Node.js (version **LTS**) depuis https://nodejs.org, puis relancez la commande. |
 | ! sur « Réglages Windows » (Git for Windows absent) | Installez Git depuis https://git-scm.com/download/win (options par défaut), puis relancez. |
-| ! sur « Installer Hermes » (macOS) : « outils de ligne de commande » | Cliquez sur **Installer** dans la fenêtre d'Apple, attendez la fin (5 à 10 min), puis relancez la commande. |
-| ✖ sur « Installer Hermes » | Souvent le réseau (téléchargements volumineux) ou l'espace disque (2,5 Go) : réessayez sur une autre connexion ; `hermes doctor` donne le détail. |
-| ✖ sur « Installer OpenCode » : « une autre version reste prioritaire » | Une version 2 d'OpenCode installée autrement (Homebrew…) masque la version 1 : désinstallez-la puis relancez. |
+| ! sur « Hermes (installer ou vérifier) » (macOS) : « outils de ligne de commande » | Cliquez sur **Installer** dans la fenêtre d'Apple, attendez la fin (5 à 10 min), puis relancez la commande. |
+| ✖ sur « Hermes (installer ou vérifier) » | Souvent le réseau (téléchargements volumineux) ou l'espace disque (2,5 Go) : réessayez sur une autre connexion ; `hermes doctor` donne le détail. |
+| ✖ sur « OpenCode (installer ou vérifier) » : « une autre version reste prioritaire » | Une version 2 d'OpenCode installée autrement (Homebrew…) masque la version 1 : désinstallez-la puis relancez. |
 | ! sur « Vérifications » | Lisez le détail : souvent un quota Albert atteint (429) ou Albert saturé (503). Réessayez plus tard ; le reste de l'installation est en place. |
 
 ### Ensuite, en utilisant OpenCode ou Pi
@@ -530,7 +533,7 @@ pas de modification du PATH ni du shell), puis lancent
 `uv tool run --python 3.12 --from "configurateur-albert @ <archive de l'étiquette>" configurateur-albert`
 avec `UV_PYTHON_PREFERENCE=only-managed` (Python de uv, qui contient Tkinter).
 
-- La version est **figée** dans chaque script (`v0.2.0`) : voir « Publier une nouvelle version ».
+- La version est **figée** dans chaque script (`v0.2.1`) : voir « Publier une nouvelle version ».
 - `CONFIGURATEUR_SOURCE=<chemin>` lance une copie locale (utilisé par la CI) ;
   `CONFIGURATEUR_REF=<étiquette ou branche>` choisit une autre version (ex. `main`).
 - `install.ps1` est en ASCII pur (compatibilité Windows PowerShell 5.1) et tout son code est dans un
@@ -539,10 +542,10 @@ avec `UV_PYTHON_PREFERENCE=only-managed` (Python de uv, qui contient Tkinter).
 
 ### Publier une nouvelle version
 
-Les commandes du README pointent vers une **étiquette** (`v0.2.0`) : tant qu'elle n'existe pas
+Les commandes du README pointent vers une **étiquette** (`v0.2.1`) : tant qu'elle n'existe pas
 sur GitHub, elles renvoient une erreur 404.
 
-1. Choisir le numéro (par exemple `0.2.0`, donc l’étiquette `v0.2.0` ; ci-dessous `vX.Y.Z`) et le reporter **partout** : `__version__` dans
+1. Choisir le numéro (par exemple `0.2.1`, donc l’étiquette `v0.2.1` ; ci-dessous `vX.Y.Z`) et le reporter **partout** : `__version__` dans
    `configurateur_albert/__init__.py`, `REF` dans `install.sh`, `$Ref` dans `install.ps1`,
    et les URL du README. `python packaging/verifier_version.py` vérifie la cohérence
    (la CI aussi).
@@ -560,7 +563,7 @@ version en cours : `curl -LsSf …/main/install.sh | CONFIGURATEUR_REF=main sh` 
 ### Construire les exécutables
 
 La CI GitHub Actions (`.github/workflows/build.yml`) lance les tests sur les 3 systèmes,
-puis construit les exécutables avec PyInstaller. Pousser une étiquette `v0.2.0` crée un
+puis construit les exécutables avec PyInstaller. Pousser une étiquette `v0.2.1` crée un
 brouillon de *Release* avec les trois fichiers. En local :
 
 ```bash

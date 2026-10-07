@@ -38,12 +38,12 @@ def redact(text: str) -> str:
 def _candidate_dirs() -> list[Path]:
     h = paths.home()
     dirs = [paths.private_node_bin(), h / ".opencode" / "bin", h / ".local" / "bin",
-            h / ".npm-global" / "bin"]
+            h / ".npm-global" / "bin", h / ".hermes" / "bin"]
     if IS_WINDOWS:
         appdata = Path(os.environ.get("APPDATA", h / "AppData" / "Roaming"))
         local = Path(os.environ.get("LOCALAPPDATA", h / "AppData" / "Local"))
         pf = Path(os.environ.get("ProgramFiles", r"C:\Program Files"))
-        dirs += [appdata / "npm", pf / "nodejs", local / "Programs" / "Microsoft VS Code" / "bin",
+        dirs += [appdata / "npm", pf / "nodejs", local / "hermes" / "bin", local / "Programs" / "Microsoft VS Code" / "bin",
                  pf / "Microsoft VS Code" / "bin", pf / "Git" / "cmd", local / "Programs" / "Git" / "cmd"]
     else:
         dirs += [Path("/opt/homebrew/bin"), Path("/usr/local/bin"), Path("/usr/bin"), Path("/bin")]
@@ -54,16 +54,19 @@ def _candidate_dirs() -> list[Path]:
 
 def _login_shell_path() -> list[str]:
     """Sur macOS, une application lancée depuis le Finder hérite d'un PATH minimal :
-    on récupère celui du shell de connexion (Homebrew, nvm…)."""
+    on récupère celui du shell de l'utilisateur. Shell interactif (-i) : nvm, et les
+    installeurs qui complètent le PATH, écrivent dans ~/.zshrc ou ~/.bashrc, que « -l »
+    seul ne lit pas. Les marqueurs isolent le PATH des messages d'accueil éventuels."""
     if IS_WINDOWS:
         return []
     shell = os.environ.get("SHELL") or ("/bin/zsh" if IS_MAC else "/bin/bash")
     try:
-        out = subprocess.run([shell, "-lc", 'printf "%s" "$PATH"'], capture_output=True,
+        out = subprocess.run([shell, "-ilc", 'printf "<<PATH>>%s<<FIN>>" "$PATH"'], capture_output=True,
                              text=True, timeout=8, stdin=subprocess.DEVNULL, check=False)
-        return [p for p in out.stdout.strip().split(":") if p]
     except (OSError, subprocess.SubprocessError):
         return []
+    m = re.search(r"<<PATH>>(.*?)<<FIN>>", out.stdout, re.S)
+    return [p for p in m.group(1).split(":") if p] if m else []
 
 
 def refresh_path() -> None:
