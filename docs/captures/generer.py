@@ -41,14 +41,14 @@ RAW_MODELS = [
 
 installer.diagnose = lambda: installer.Diagnostic(
     os="macOS 15.6 (arm64)", node="20.11.0", node_ok_for_pi=False, npm_writable=False,
-    git_bash=None, opencode=None, pi=None, vscode=True, key=None)
+    git_bash=None, opencode="1.18.35", pi=None, vscode=True, key=None)
 albert.list_raw = lambda key, base_url=None: RAW_MODELS
 
 STEPS_DONE = [
     ("cle", "ok", "Clé sk-eyJh… rangée"),
     ("node", "ok", "Node.js installé dans votre dossier personnel"),
     ("windows", "ignoré", "Non concerné"),
-    ("opencode", "ok", "Version 1.18.35 installée"),
+    ("opencode", "ok", "Déjà installé (version 1.18.35)"),
     ("pi", "ok", "Version 1.0.4 installée"),
     ("hermes", "ignoré", "Non demandé"),
     ("config", "ok", "Modèle par défaut : gemma-4-31b-it"),
@@ -62,8 +62,6 @@ LOG = [
     "Recherche de la dernière version LTS de Node.js…",
     "Téléchargement de node-v24.21.0-darwin-arm64.tar.gz…",
     "Archive vérifiée (SHA-256).",
-    "$ npm install -g opencode-ai@1",
-    "  added 3 packages in 14s",
     "$ npm install -g --ignore-scripts @earendil-works/pi-coding-agent@1",
     "  added 121 packages in 11s",
     "Préparation du connecteur MarkItDown (lecture de documents) (téléchargement, une seule fois)…",

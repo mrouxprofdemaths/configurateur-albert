@@ -35,9 +35,9 @@ STEPS = [
     ("cle", "Ranger la clé Albert"),
     ("node", "Node.js"),
     ("windows", "Réglages Windows"),
-    ("opencode", "Installer OpenCode"),
-    ("pi", "Installer Pi"),
-    ("hermes", "Installer Hermes"),
+    ("opencode", "OpenCode (installer ou vérifier)"),
+    ("pi", "Pi (installer ou vérifier)"),
+    ("hermes", "Hermes (installer ou vérifier)"),
     ("config", "Brancher Albert (configurations)"),
     ("skills", "Installer les skills"),
     ("vscode", "Extension VS Code"),
@@ -95,6 +95,30 @@ def diagnose() -> Diagnostic:
         key=keystore.existing_key(),
         hermes=hermes.version(),
     )
+
+
+TOOLS = {
+    "opencode": "OpenCode — interface en terminal, extension VS Code",
+    "pi": "Pi — plus léger, sait faire de l'OCR d'images",
+    "hermes": "Hermes — agent très complet (mémoire, automatisations, messageries)",
+}
+
+
+def tool_choice(tool: str, d: Diagnostic | None) -> tuple[str, str]:
+    """Libellé d'un assistant et ce qui sera fait s'il est coché : un outil déjà présent
+    (dans une version utilisable) n'est pas réinstallé, seulement configuré."""
+    version = getattr(d, tool, None) if d else None
+    install = "sera installé puis configuré"
+    if tool == "hermes":
+        install += " (installation longue : 5 à 15 min)"
+    if not version:
+        return TOOLS[tool], install
+    if tool == "opencode" and d.opencode_major != 1:
+        return TOOLS[tool], f"version {version} détectée : la version 1 (testée) sera installée puis configurée"
+    v = system.parse_version(version)
+    if tool == "pi" and v is not None and v < (1, 0, 0):
+        return TOOLS[tool], f"ancienne version {version} détectée : sera mise à jour puis configurée"
+    return TOOLS[tool], f"déjà installé (version {version}) : sera seulement configuré"
 
 
 def catalog_items(kind: str, ids: list[str]) -> list[dict]:
