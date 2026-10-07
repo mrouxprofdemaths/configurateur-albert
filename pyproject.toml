@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "configurateur-albert"
+dynamic = ["version"]
+description = "Installe et configure OpenCode et Pi avec Albert API (IA de l'État), pour les novices."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+dependencies = ["certifi"]
+
+[project.optional-dependencies]
+dev = ["pytest", "pyinstaller>=6", "ruff"]
+
+[project.scripts]
+configurateur-albert = "configurateur_albert.__main__:main"
+
+[tool.setuptools.dynamic]
+version = { attr = "configurateur_albert.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["configurateur_albert*"]
+
+[tool.setuptools.package-data]
+configurateur_albert = ["catalog.json", "skills/**/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B", "UP"]
+ignore = ["E731", "E501"]

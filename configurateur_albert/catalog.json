@@ -1,0 +1,141 @@
+{
+  "albert": {
+    "base_url": "https://albert.api.etalab.gouv.fr/v1",
+    "playground_url": "https://albert.playground.etalab.gouv.fr",
+    "keys_url": "https://albert.playground.etalab.gouv.fr/keys",
+    "env_var": "ALBERT_API_KEY",
+    "default_model": "gemma-4-31b-it",
+    "chat_types": ["text-generation", "image-text-to-text", "image-to-text"]
+  },
+
+  "models": {
+    "gemma-4-31b-it": {
+      "name": "Gemma 4 31B",
+      "input": ["text", "image"],
+      "context": 262144,
+      "output": 32768,
+      "note": "généraliste, lit les images (recommandé)"
+    },
+    "gpt-oss-120b": {
+      "name": "GPT-OSS 120B",
+      "input": ["text"],
+      "context": 131072,
+      "output": 32768,
+      "note": "raisonnement (quota réduit : 10 requêtes/min)"
+    },
+    "deepseek-v4-flash-0731": {
+      "name": "DeepSeek V4 Flash",
+      "input": ["text"],
+      "context": 131072,
+      "output": 32768,
+      "note": "code uniquement (modèle extra-européen)"
+    },
+    "ministral-3-8b-instruct-2512": {
+      "name": "Ministral 3 8B",
+      "input": ["text", "image"],
+      "context": 262144,
+      "output": 32768,
+      "opencode": false,
+      "note": "petit et rapide (Pi seulement : refusé par OpenCode en mode « run »)"
+    },
+    "lightonocr-2-1b": {
+      "name": "LightOn OCR",
+      "input": ["text", "image"],
+      "context": 16384,
+      "output": 4096,
+      "tools": false,
+      "opencode": false,
+      "note": "OCR : recopie le texte d'une image (Pi seulement)"
+    }
+  },
+
+  "excluded_models": {
+    "mistral-small-3-2-24b-instruct-2506": "appels d'outils mal formés, retrait prévu le 1/12/2026",
+    "qwen3-coder-30b-a3b-instruct": "retrait annoncé le 1/10/2026"
+  },
+
+  "skills": [
+    {
+      "id": "anonymisation-textes",
+      "name": "Anonymiser un texte",
+      "description": "Retire noms, adresses et autres données personnelles d'un texte avant de le confier à l'IA.",
+      "source": {"type": "bundled"},
+      "default": true
+    },
+    {
+      "id": "transcription-audio",
+      "name": "Transcrire un enregistrement audio",
+      "description": "Transforme un fichier mp3/wav en texte avec le modèle Whisper d'Albert.",
+      "source": {"type": "bundled"},
+      "default": true
+    },
+    {
+      "id": "usage-ia-agents-etat",
+      "name": "Cadre d'usage de l'IA (DINUM)",
+      "description": "Les 5 principes du guide d'usage de l'IA générative pour les agents publics.",
+      "source": {"type": "github", "repo": "etalab-ia/skills", "ref": "main", "path": "skills/usage-ia-agents-etat"},
+      "default": true
+    },
+    {
+      "id": "datagouv-apis",
+      "name": "Données publiques data.gouv.fr",
+      "description": "Chercher et utiliser les jeux de données publics de data.gouv.fr.",
+      "source": {"type": "github", "repo": "etalab-ia/skills", "ref": "main", "path": "skills/datagouv-apis"},
+      "default": false
+    },
+    {
+      "id": "rgaa",
+      "name": "Accessibilité numérique (RGAA)",
+      "description": "Vérifier qu'une page web respecte le référentiel d'accessibilité RGAA.",
+      "source": {"type": "github", "repo": "etalab-ia/skills", "ref": "main", "path": "skills/rgaa"},
+      "default": false
+    },
+    {
+      "id": "docx",
+      "name": "Documents Word (.docx)",
+      "description": "Créer et modifier des documents Word. Nécessite Python sur le poste. Licence Anthropic (usage personnel).",
+      "source": {"type": "github", "repo": "anthropics/skills", "ref": "main", "path": "skills/docx"},
+      "default": false
+    },
+    {
+      "id": "pptx",
+      "name": "Diaporamas PowerPoint (.pptx)",
+      "description": "Créer et modifier des diaporamas. Nécessite Python sur le poste. Licence Anthropic (usage personnel).",
+      "source": {"type": "github", "repo": "anthropics/skills", "ref": "main", "path": "skills/pptx"},
+      "default": false
+    },
+    {
+      "id": "xlsx",
+      "name": "Tableurs Excel (.xlsx)",
+      "description": "Créer et modifier des tableurs. Nécessite Python sur le poste. Licence Anthropic (usage personnel).",
+      "source": {"type": "github", "repo": "anthropics/skills", "ref": "main", "path": "skills/xlsx"},
+      "default": false
+    },
+    {
+      "id": "pdf",
+      "name": "Fichiers PDF",
+      "description": "Extraire, fusionner, remplir des PDF. Nécessite Python sur le poste. Licence Anthropic (usage personnel).",
+      "source": {"type": "github", "repo": "anthropics/skills", "ref": "main", "path": "skills/pdf"},
+      "default": false
+    }
+  ],
+
+  "mcp": [
+    {
+      "id": "data-gouv",
+      "name": "data.gouv.fr",
+      "description": "Interroger les données publiques (catalogue, jeux de données), en lecture seule. Sans compte.",
+      "type": "remote",
+      "url": "https://mcp.data.gouv.fr/mcp",
+      "default": true
+    },
+    {
+      "id": "context7",
+      "name": "Context7",
+      "description": "Documentation à jour des bibliothèques de programmation. Sans compte (débit limité).",
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp",
+      "default": false
+    }
+  ]
+}
