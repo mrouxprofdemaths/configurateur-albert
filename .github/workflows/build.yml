@@ -1,0 +1,132 @@
+name: Tests et exécutables
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install certifi pytest ruff
+      - run: python -m ruff check .
+      - run: python -m pytest -q
+
+  amorcage:
+    # Les commandes « curl … | sh » et « irm … | iex » : uv, Python géré, Tkinter.
+    needs: tests
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      CONFIGURATEUR_SOURCE: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: install.sh (fichier et tube)
+        if: runner.os != 'Windows'
+        run: |
+          sh install.sh --version
+          cat install.sh | sh -s -- --version
+      - name: install.sh — interface graphique (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get install -y xvfb
+          xvfb-run -a sh install.sh --test-interface
+      - name: install.sh — interface graphique (macOS)
+        if: runner.os == 'macOS'
+        run: sh install.sh --test-interface
+      - name: install.ps1 (Windows PowerShell 5.1, fichier)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $out = powershell -NoProfile -File install.ps1 --version *>&1 | Out-String
+          Write-Host $out
+          if ($out -notmatch "Configurateur Albert \d") { exit 1 }
+          $out = powershell -NoProfile -File install.ps1 --test-interface *>&1 | Out-String
+          Write-Host $out
+          if ($out -notmatch "Interface graphique OK") { exit 1 }
+      - name: install.ps1 (irm | iex)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $env:CONFIGURATEUR_ARGS = "--version"
+          $out = Get-Content install.ps1 -Raw | Invoke-Expression *>&1 | Out-String
+          Write-Host $out
+          if ($out -notmatch "Configurateur Albert \d") { exit 1 }
+
+  build:
+    needs: tests
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            artifact: ConfigurateurAlbert-Windows.exe
+          - os: macos-latest          # Apple Silicon (M1, M2…)
+            artifact: ConfigurateurAlbert-macOS.zip
+          - os: ubuntu-22.04          # glibc ancienne : fonctionne sur la plupart des distributions
+            artifact: ConfigurateurAlbert-Linux
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install certifi "pyinstaller>=6"
+      - run: pyinstaller --noconfirm packaging/configurateur-albert.spec
+
+      - name: Nommer l'exécutable (Windows)
+        if: runner.os == 'Windows'
+        run: Move-Item dist/ConfigurateurAlbert.exe dist/${{ matrix.artifact }}
+      - name: Zipper l'application (macOS)
+        if: runner.os == 'macOS'
+        run: ditto -c -k --keepParent dist/ConfigurateurAlbert.app dist/${{ matrix.artifact }}
+      - name: Nommer le binaire (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          mv dist/ConfigurateurAlbert dist/${{ matrix.artifact }}
+          chmod +x dist/${{ matrix.artifact }}
+
+      - name: Vérifier que l'interface graphique démarre (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get install -y xvfb
+          xvfb-run -a dist/${{ matrix.artifact }} --test-interface
+      - name: Vérifier que l'interface graphique démarre (macOS)
+        if: runner.os == 'macOS'
+        run: dist/ConfigurateurAlbert.app/Contents/MacOS/ConfigurateurAlbert --test-interface
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: dist/${{ matrix.artifact }}
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          draft: true
