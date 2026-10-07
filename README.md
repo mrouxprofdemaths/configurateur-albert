@@ -322,6 +322,7 @@ $env:CONFIGURATEUR_TEXTE = "1"; irm https://raw.githubusercontent.com/mrouxprofd
 
 | Message ou symptôme | Que faire |
 |---|---|
+| « la version v0.1.0 … est introuvable sur GitHub » | La version n'est pas encore publiée : prévenez la personne qui vous a transmis la commande. En attendant, la commande affichée juste en dessous lance la version en cours de développement. |
 | `curl: command not found` (Linux) | Installez curl (`sudo apt install curl`) ou demandez au support. |
 | « irm n'est pas reconnu… » (Windows) | Vous êtes dans l'invite de commandes (`cmd`) : ouvrez **PowerShell** ou **Terminal** (voir [étape 3](#3-ouvrir-un-terminal)). |
 | Le terminal reste plusieurs minutes sans rien afficher | Premier lancement : téléchargements en cours, patientez jusqu'à 5 minutes sur une connexion lente. |
@@ -468,13 +469,32 @@ pas de modification du PATH ni du shell), puis lancent
 `uv tool run --python 3.12 --from "configurateur-albert @ <archive de l'étiquette>" configurateur-albert`
 avec `UV_PYTHON_PREFERENCE=only-managed` (Python de uv, qui contient Tkinter).
 
-- La version est **figée** dans chaque script (`v0.1.0`) : à chaque nouvelle version, mettre à jour
-  `REF`/`$Ref` dans les deux scripts **et** les URL du README, puis créer l'étiquette correspondante.
+- La version est **figée** dans chaque script (`v0.1.0`) : voir « Publier une nouvelle version ».
 - `CONFIGURATEUR_SOURCE=<chemin>` lance une copie locale (utilisé par la CI) ;
-  `CONFIGURATEUR_REF=<étiquette>` choisit une autre version.
+  `CONFIGURATEUR_REF=<étiquette ou branche>` choisit une autre version (ex. `main`).
 - `install.ps1` est en ASCII pur (compatibilité Windows PowerShell 5.1) et tout son code est dans un
   bloc `& { … }` : sous `irm | iex`, rien ne reste dans la session de l'utilisateur, et il n'appelle
   jamais `exit` (cela fermerait sa fenêtre).
+
+### Publier une nouvelle version
+
+Les commandes du README pointent vers une **étiquette** (`v0.1.0`) : tant qu'elle n'existe pas
+sur GitHub, elles renvoient une erreur 404.
+
+1. Choisir le numéro (par exemple `0.2.0`, donc l’étiquette `v0.2.0` ; ci-dessous `vX.Y.Z`) et le reporter **partout** : `__version__` dans
+   `configurateur_albert/__init__.py`, `REF` dans `install.sh`, `$Ref` dans `install.ps1`,
+   et les URL du README. `python packaging/verifier_version.py` vérifie la cohérence
+   (la CI aussi).
+2. Fusionner sur `main`.
+3. Créer l'étiquette **depuis GitHub** : *Releases → Draft a new release → Choose a tag* :
+   `vX.Y.Z` (« Create new tag on publish »), cible `main`, puis **Publish release**.
+   La CI construit alors les exécutables et les joint à une release (brouillon) du même nom.
+4. Vérifier depuis un autre poste :
+   `curl -LsSf https://raw.githubusercontent.com/mrouxprofdemaths/configurateur-albert/vX.Y.Z/install.sh | sh -s -- --version`.
+
+Tant que l'étiquette manque, la CI de `main` affiche un avertissement. Pour tester la
+version en cours : `curl -LsSf …/main/install.sh | CONFIGURATEUR_REF=main sh` (Windows :
+`$env:CONFIGURATEUR_REF = "main"` avant `irm …/main/install.ps1 | iex`).
 
 ### Construire les exécutables
 

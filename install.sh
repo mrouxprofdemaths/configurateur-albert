@@ -14,8 +14,10 @@ set -eu
 
 REF="${CONFIGURATEUR_REF:-v0.1.0}"
 REPO="mrouxprofdemaths/configurateur-albert"
+# Archive GitHub de la version : fonctionne pour une étiquette (v0.1.0) comme pour une branche (main).
+ARCHIVE="https://github.com/$REPO/archive/$REF.tar.gz"
 # CONFIGURATEUR_SOURCE permet de tester une copie locale (utilisé par la CI).
-SOURCE="${CONFIGURATEUR_SOURCE:-configurateur-albert @ https://github.com/$REPO/archive/refs/tags/$REF.tar.gz}"
+SOURCE="${CONFIGURATEUR_SOURCE:-configurateur-albert @ $ARCHIVE}"
 UV_DIR="$HOME/.local/share/configurateur-albert/uv"
 
 say() { printf '%s\n' "$*"; }
@@ -26,6 +28,17 @@ say ""
 
 if ! command -v curl >/dev/null 2>&1; then
     say "Erreur : la commande « curl » est introuvable. Installez-la puis relancez."
+    exit 1
+fi
+
+# La version demandée existe-t-elle ? (sinon uv afficherait une erreur 404 incompréhensible)
+if [ -z "${CONFIGURATEUR_SOURCE:-}" ] && ! curl -fsSIL -o /dev/null "$ARCHIVE" 2>/dev/null; then
+    say "Erreur : la version $REF du Configurateur Albert est introuvable sur GitHub"
+    say "(étiquette pas encore publiée, ou connexion à github.com bloquée)."
+    say ""
+    say "Prévenez la personne qui vous a transmis cette commande. Pour essayer la version"
+    say "en cours de développement :"
+    say "  curl -LsSf https://raw.githubusercontent.com/$REPO/main/install.sh | CONFIGURATEUR_REF=main sh"
     exit 1
 fi
 
