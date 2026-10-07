@@ -1,0 +1,49 @@
+# CI de la Forge des communs numériques éducatifs (machines Linux).
+# Les tests macOS / Windows et les exécutables restent sur le miroir GitHub
+# (.github/workflows/build.yml) : la Forge ne fournit pas ces systèmes.
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_COMMIT_TAG
+
+default:
+  image: python:3.12
+  interruptible: true
+
+stages: [tests, amorcage]
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+tests:
+  stage: tests
+  cache:
+    paths: [.cache/pip]
+  script:
+    - python -m pip install --quiet certifi pytest ruff
+    - python -m ruff check .
+    - python -m pytest -q
+
+version:
+  # Même numéro de version partout ; sur une étiquette, il doit correspondre.
+  stage: tests
+  script:
+    - python packaging/verifier_version.py
+    - if [ -n "$CI_COMMIT_TAG" ]; then python packaging/verifier_version.py --etiquette "$CI_COMMIT_TAG"; fi
+    - if [ "$CI_COMMIT_BRANCH" = "$CI_DEFAULT_BRANCH" ]; then python packaging/verifier_version.py --signaler-absente; fi
+
+amorcage:
+  # La commande « curl … | sh » : uv, Python géré par uv, Tkinter (fenêtre sous Xvfb).
+  stage: amorcage
+  needs: [tests]
+  variables:
+    CONFIGURATEUR_SOURCE: "$CI_PROJECT_DIR"
+  script:
+    - apt-get update -qq && apt-get install -y -qq xvfb xauth >/dev/null
+    - sh install.sh --version
+    - cat install.sh | sh -s -- --version
+    - xvfb-run -a sh install.sh --test-interface

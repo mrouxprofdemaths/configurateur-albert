@@ -88,13 +88,13 @@ Copiez la ligne correspondant à votre système, collez-la dans le terminal, pui
 **macOS et Linux :**
 
 ```bash
-curl -LsSf https://raw.githubusercontent.com/mrouxprofdemaths/configurateur-albert/v0.2.1/install.sh | sh
+curl -LsSf https://forge.apps.education.fr/rouxpierre-edouard/configurateur-albert/-/raw/v0.2.2/install.sh | sh
 ```
 
 **Windows :**
 
 ```powershell
-irm https://raw.githubusercontent.com/mrouxprofdemaths/configurateur-albert/v0.2.1/install.ps1 | iex
+irm https://forge.apps.education.fr/rouxpierre-edouard/configurateur-albert/-/raw/v0.2.2/install.ps1 | iex
 ```
 
 > Pour coller dans le terminal : `Cmd ⌘ + V` (macOS), `Ctrl + V` ou clic droit (Windows),
@@ -103,7 +103,7 @@ irm https://raw.githubusercontent.com/mrouxprofdemaths/configurateur-albert/v0.2
 Le terminal affiche alors :
 
 ```text
-=== Configurateur Albert (v0.2.1) ===
+=== Configurateur Albert (v0.2.2) ===
 
 Préparation (une seule fois) : téléchargement de l'outil uv…
 La fenêtre de l'installateur va s'ouvrir (premier lancement : 1 à 2 minutes).
@@ -366,11 +366,11 @@ l'utilisez plus.
 **Mode texte** (sans fenêtre, pour les habitués du terminal) :
 
 ```bash
-curl -LsSf https://raw.githubusercontent.com/mrouxprofdemaths/configurateur-albert/v0.2.1/install.sh | sh -s -- --texte
+curl -LsSf https://forge.apps.education.fr/rouxpierre-edouard/configurateur-albert/-/raw/v0.2.2/install.sh | sh -s -- --texte
 ```
 
 ```powershell
-$env:CONFIGURATEUR_TEXTE = "1"; irm https://raw.githubusercontent.com/mrouxprofdemaths/configurateur-albert/v0.2.1/install.ps1 | iex
+$env:CONFIGURATEUR_TEXTE = "1"; irm https://forge.apps.education.fr/rouxpierre-edouard/configurateur-albert/-/raw/v0.2.2/install.ps1 | iex
 ```
 
 ---
@@ -381,11 +381,11 @@ $env:CONFIGURATEUR_TEXTE = "1"; irm https://raw.githubusercontent.com/mrouxprofd
 
 | Message ou symptôme | Que faire |
 |---|---|
-| « la version v0.2.1 … est introuvable sur GitHub » | La version n'est pas encore publiée : prévenez la personne qui vous a transmis la commande. En attendant, la commande affichée juste en dessous lance la version en cours de développement. |
+| « la version v0.2.2 … est introuvable sur la Forge » | La version n'est pas encore publiée : prévenez la personne qui vous a transmis la commande. En attendant, la commande affichée juste en dessous lance la version en cours de développement. |
 | `curl: command not found` (Linux) | Installez curl (`sudo apt install curl`) ou demandez au support. |
 | « irm n'est pas reconnu… » (Windows) | Vous êtes dans l'invite de commandes (`cmd`) : ouvrez **PowerShell** ou **Terminal** (voir [étape 3](#3-ouvrir-un-terminal)). |
 | Le terminal reste plusieurs minutes sans rien afficher | Premier lancement : téléchargements en cours, patientez jusqu'à 5 minutes sur une connexion lente. |
-| « L'installation de uv a échoué » / erreur de connexion | Le réseau ou le pare-feu de l'établissement bloque GitHub : essayez depuis un autre réseau (partage de connexion du téléphone, domicile). |
+| « L'installation de uv a échoué » / erreur de connexion | Le réseau ou le pare-feu de l'établissement bloque la Forge (forge.apps.education.fr) ou GitHub (d'où vient l'outil uv) : essayez depuis un autre réseau (partage de connexion du téléphone, domicile). |
 | L'antivirus signale ou bloque la commande (poste d'établissement) | Le poste est verrouillé par l'administration : contactez votre support informatique avec le lien de cette page. |
 | La fenêtre ne s'ouvre pas, mais des questions apparaissent dans le terminal | Pas d'affichage graphique disponible : répondez aux questions dans le terminal (mode texte), le résultat est le même. |
 
@@ -417,8 +417,9 @@ $env:CONFIGURATEUR_TEXTE = "1"; irm https://raw.githubusercontent.com/mrouxprofd
 ## 9. Méthode de secours : l'exécutable à télécharger
 
 Si vous ne pouvez pas utiliser le terminal, la page
-[**Releases**](https://github.com/mrouxprofdemaths/configurateur-albert/releases) propose un
-programme à télécharger :
+[**Releases** du miroir GitHub](https://github.com/mrouxprofdemaths/configurateur-albert/releases)
+propose un programme à télécharger (la Forge ne dispose pas de machines Windows et macOS pour
+les fabriquer) :
 
 | Système | Fichier |
 |---|---|
@@ -533,7 +534,7 @@ pas de modification du PATH ni du shell), puis lancent
 `uv tool run --python 3.12 --from "configurateur-albert @ <archive de l'étiquette>" configurateur-albert`
 avec `UV_PYTHON_PREFERENCE=only-managed` (Python de uv, qui contient Tkinter).
 
-- La version est **figée** dans chaque script (`v0.2.1`) : voir « Publier une nouvelle version ».
+- La version est **figée** dans chaque script (`v0.2.2`) : voir « Publier une nouvelle version ».
 - `CONFIGURATEUR_SOURCE=<chemin>` lance une copie locale (utilisé par la CI) ;
   `CONFIGURATEUR_REF=<étiquette ou branche>` choisit une autre version (ex. `main`).
 - `install.ps1` est en ASCII pur (compatibilité Windows PowerShell 5.1) et tout son code est dans un
@@ -542,19 +543,22 @@ avec `UV_PYTHON_PREFERENCE=only-managed` (Python de uv, qui contient Tkinter).
 
 ### Publier une nouvelle version
 
-Les commandes du README pointent vers une **étiquette** (`v0.2.1`) : tant qu'elle n'existe pas
-sur GitHub, elles renvoient une erreur 404.
+Le dépôt de référence est sur la **Forge des communs numériques éducatifs** :
+<https://forge.apps.education.fr/rouxpierre-edouard/configurateur-albert>. Les commandes du README pointent vers une **étiquette** (`v0.2.2`) :
+tant qu'elle n'existe pas sur la Forge, elles renvoient une erreur 404.
 
-1. Choisir le numéro (par exemple `0.2.1`, donc l’étiquette `v0.2.1` ; ci-dessous `vX.Y.Z`) et le reporter **partout** : `__version__` dans
+1. Choisir le numéro (par exemple `0.2.2`, donc l’étiquette `v0.2.2` ; ci-dessous `vX.Y.Z`) et le reporter **partout** : `__version__` dans
    `configurateur_albert/__init__.py`, `REF` dans `install.sh`, `$Ref` dans `install.ps1`,
    et les URL du README. `python packaging/verifier_version.py` vérifie la cohérence
    (la CI aussi).
-2. Fusionner sur `main`.
-3. Créer l'étiquette **depuis GitHub** : *Releases → Draft a new release → Choose a tag* :
-   `vX.Y.Z` (« Create new tag on publish »), cible `main`, puis **Publish release**.
-   La CI construit alors les exécutables et les joint à une release (brouillon) du même nom.
-4. Vérifier depuis un autre poste :
-   `curl -LsSf https://raw.githubusercontent.com/mrouxprofdemaths/configurateur-albert/vX.Y.Z/install.sh | sh -s -- --version`.
+2. Fusionner sur `main` (demande de fusion sur la Forge).
+3. Créer la version **depuis la Forge** : *Déploiement → Versions → Nouvelle version*,
+   étiquette `vX.Y.Z` (nouvelle étiquette créée depuis `main`), titre `vX.Y.Z`, puis
+   **Créer la version**. La CI vérifie que l'étiquette correspond à la version des fichiers.
+4. Pour les exécutables (facultatif) : pousser la même étiquette sur le miroir GitHub ;
+   GitHub Actions les construit et les joint à une release du même nom.
+5. Vérifier depuis un autre poste :
+   `curl -LsSf https://forge.apps.education.fr/rouxpierre-edouard/configurateur-albert/-/raw/vX.Y.Z/install.sh | sh -s -- --version`.
 
 Tant que l'étiquette manque, la CI de `main` affiche un avertissement. Pour tester la
 version en cours : `curl -LsSf …/main/install.sh | CONFIGURATEUR_REF=main sh` (Windows :
@@ -562,9 +566,16 @@ version en cours : `curl -LsSf …/main/install.sh | CONFIGURATEUR_REF=main sh` 
 
 ### Construire les exécutables
 
-La CI GitHub Actions (`.github/workflows/build.yml`) lance les tests sur les 3 systèmes,
-puis construit les exécutables avec PyInstaller. Pousser une étiquette `v0.2.1` crée un
-brouillon de *Release* avec les trois fichiers. En local :
+Deux CI coexistent :
+
+- **Forge** (`.gitlab-ci.yml`, machines Linux) : lint, tests, cohérence des versions et
+  lancement réel de `install.sh` (uv, Python géré, Tkinter). C'est elle qui protège `main`.
+- **Miroir GitHub** (`.github/workflows/build.yml`) : tests sur Linux, macOS et Windows,
+  y compris `install.ps1` sous Windows PowerShell 5.1, puis construction des exécutables
+  avec PyInstaller. Pousser une étiquette `vX.Y.Z` sur GitHub crée un brouillon de
+  *Release* avec les trois fichiers.
+
+En local :
 
 ```bash
 python3 -m pip install pyinstaller certifi

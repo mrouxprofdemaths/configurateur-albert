@@ -1,6 +1,6 @@
 # Configurateur Albert - lancement depuis PowerShell (Windows).
 #
-#   irm https://raw.githubusercontent.com/mrouxprofdemaths/configurateur-albert/v0.2.1/install.ps1 | iex
+#   irm https://forge.apps.education.fr/rouxpierre-edouard/configurateur-albert/-/raw/v0.2.2/install.ps1 | iex
 #
 # Mode texte (sans fenetre) : $env:CONFIGURATEUR_TEXTE = "1" avant la commande ci-dessus.
 # Autres options : $env:CONFIGURATEUR_ARGS = "--desinstaller" (par exemple).
@@ -16,11 +16,12 @@
     # Windows PowerShell 5.1 n'active pas toujours TLS 1.2 par defaut.
     [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 
-    $Ref = if ($env:CONFIGURATEUR_REF) { $env:CONFIGURATEUR_REF } else { "v0.2.1" }
-    $Repo = "mrouxprofdemaths/configurateur-albert"
+    $Ref = if ($env:CONFIGURATEUR_REF) { $env:CONFIGURATEUR_REF } else { "v0.2.2" }
+    $Depot = "https://forge.apps.education.fr/rouxpierre-edouard/configurateur-albert"
     # CONFIGURATEUR_SOURCE permet de tester une copie locale (utilise par la CI).
-    # Archive GitHub de la version : etiquette (v0.2.1) ou branche (main).
-    $Archive = "https://github.com/$Repo/archive/$Ref.tar.gz"
+    # Archive de la version sur la Forge des communs numeriques educatifs :
+    # etiquette (v0.2.2) ou branche (main).
+    $Archive = "$Depot/-/archive/$Ref/$Ref.tar.gz"
     $Source = if ($env:CONFIGURATEUR_SOURCE) { $env:CONFIGURATEUR_SOURCE } `
               else { "configurateur-albert @ $Archive" }
     $UvDir = Join-Path $env:LOCALAPPDATA "configurateur-albert\uv"
@@ -34,12 +35,12 @@
         try {
             Invoke-WebRequest -Uri $Archive -Method Head -UseBasicParsing | Out-Null
         } catch {
-            Write-Host "Erreur : la version $Ref du Configurateur Albert est introuvable sur GitHub"
-            Write-Host "(etiquette pas encore publiee, ou connexion a github.com bloquee)."
+            Write-Host "Erreur : la version $Ref du Configurateur Albert est introuvable sur la Forge"
+            Write-Host "(etiquette pas encore publiee, ou connexion a forge.apps.education.fr bloquee)."
             Write-Host ""
             Write-Host "Prevenez la personne qui vous a transmis cette commande. Pour essayer la version"
             Write-Host "en cours de developpement :"
-            Write-Host "  `$env:CONFIGURATEUR_REF = `"main`"; irm https://raw.githubusercontent.com/$Repo/main/install.ps1 | iex"
+            Write-Host "  `$env:CONFIGURATEUR_REF = `"main`"; irm $Depot/-/raw/main/install.ps1 | iex"
             return
         }
     }
